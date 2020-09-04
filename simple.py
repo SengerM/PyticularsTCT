@@ -15,15 +15,8 @@ if sys.platform in ("win32", "win64"):
     libdir = os.path.join(ximc_dir, sys.platform)
     os.environ["Path"] = libdir + ";" + os.environ["Path"]
 
-try: 
-    from pyximc import *
-    from pyximc import MicrostepMode
-except ImportError as err:
-    print ('Can not import pyximc module.')
-    exit()
-except OSError as err:
-    print ('Can not load libximc library.')
-    exit()
+from pyximc import *
+from pyximc import MicrostepMode
 
  # All windows in attenuator wheels are marked:
  #     Wheel_1              Wheel_2

@@ -13,7 +13,7 @@ def ximc_shared_lib():
     elif platform.system() == "Darwin":
         return CDLL("libximc.framework/libximc")
     elif platform.system() == "Windows":
-        return WinDLL("libximc.dll")
+        return WinDLL("ximc/win64/libximc.dll")
     else:
         return None
 
