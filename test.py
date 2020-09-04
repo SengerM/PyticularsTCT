@@ -53,16 +53,24 @@ class Stage:
     def reset_position(self):
         pyximc.lib.command_homezero(self._dev_id)
     
-    def move_to(self, units: int):
-        if not isinstance(units, int):
-            raise TypeError('<units> must be an int')
-        pyximc.lib.command_move(self._dev_id, units, 0) # https://libximc.xisupport.com/doc-en/ximc_8h.html#aa6113a42efa241396c72226bba9acd59
+    def move_to(self, steps: int = 0, usteps: int = 0):
+        if not isinstance(steps, int):
+            raise TypeError('<steps> must be an int')
+        if not isinstance(usteps, int):
+            raise TypeError('<usteps> must be an int')
+        if not 0 <= usteps < 255:
+            raise ValueError('<usteps> must be between 0 and 255 (1 step = 255 usteps)')
+        pyximc.lib.command_move(self._dev_id, steps, usteps) # https://libximc.xisupport.com/doc-en/ximc_8h.html#aa6113a42efa241396c72226bba9acd59
         pyximc.lib.command_wait_for_stop(self._dev_id, 10) # https://libximc.xisupport.com/doc-en/ximc_8h.html#ad9324f278bf9b97ad85b3411562ef0f7
     
-    def move_rel(self, units: int):
-        if not isinstance(units, int):
-            raise TypeError('<units> must be an int')
-        pyximc.lib.command_movr(self._dev_id, units, 0)
+    def move_rel(self, steps: int = 0, usteps: int = 0):
+        if not isinstance(steps, int):
+            raise TypeError('<steps> must be an int')
+        if not isinstance(usteps, int):
+            raise TypeError('<usteps> must be an int')
+        if not 0 <= usteps < 255:
+            raise ValueError('<usteps> must be between 0 and 255 (1 step = 255 usteps)')
+        pyximc.lib.command_movr(self._dev_id, steps, usteps)
         pyximc.lib.command_wait_for_stop(self._dev_id, 10)
     
     def get_position(self):
@@ -86,6 +94,6 @@ if __name__ == "__main__":
         print(Z.get_position())
         pos = int(input('Enter new position: '))
         print(f'Moving stage to {pos}...')
-        Z.move_to(pos)
+        Z.move_to(steps = pos)
 
     
