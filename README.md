@@ -19,18 +19,15 @@ x_stage = PTCT.Stage(port = 'COM3') # Use NiMax to find the port of each stage.
 y_stage = PTCT.Stage(port = 'COM4')
 z_stage = PTCT.Stage(port = 'COM5')
 
-print('Starging position = ' + str(z_stage.get_position()))
+print('Starging position = ' + str(z_stage.position)) # Prints the current position in meters.
 z_stage.move_to(0) # Move the stage to the 0 position.
-print(z_stage.get_position())
-z_stage.move_to(
-    steps = 999,
-    usteps = 100,
-) # Move the stage to the 999 steps and 100 microsteps position. (I believe that 1 step = 256 µsteps = 2.5 µm.)
-print(z_stage.get_position())
-z_stage.move_rel(1) # Move the stage 10 steps forward
-print(z_stage.get_position())
-z_stage.move_rel(-10) # Move the stage 10 steps backwards
-print(z_stage.get_position())
+print(z_stage.position)
+z_stage.move_to(1e-2) # Moves the stage 1 cm in forward direction.
+print(z_stage.position)
+z_stage.move_rel(-1e-3) # Move the stage 1 mm in backward direction.
+print(z_stage.position)
+z_stage.move_rel(21e-3) # Moves the stage 2.1 cm in forward direction.
+print(z_stage.position)
 ```
 
 ## More info
