@@ -1,5 +1,15 @@
 import setuptools
-from glob import glob
+import os
+
+cur_dir = os.path.abspath(os.path.dirname(__file__))
+ximc_dir = os.path.join(cur_dir, "ximc")
+
+files2install = []
+# r=root, d=directories, f = files
+for r, d, f in os.walk(path):
+    for file in f:
+        if '.txt' in file:
+            files2install.append(os.path.join(r, file))
 
 # with open("README.md", "r") as fh:
 	# long_description = fh.read()
@@ -20,6 +30,6 @@ setuptools.setup(
 		# "Operating System :: OS Independent",
 	],
 	package_data = {
-        'ximc': glob('ximc/*', recursive=True)
+        'ximc': files2install
     }
 )
