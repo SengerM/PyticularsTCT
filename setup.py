@@ -1,16 +1,8 @@
 import setuptools
-import os
+from pathlib import Path
 
-cur_dir = os.path.abspath(os.path.dirname(__file__))
-ximc_dir = os.path.join(cur_dir, "ximc")
-
-files2install = []
-# r=root, d=directories, f = files
-for r, d, f in os.walk(ximc_dir):
-    for file in f:
-        if '.txt' in file:
-            files2install.append(os.path.join(r, file))
-
+datadir = Path(__file__)/'PyticularsTCT'/'ximc'
+files = [str(p.relative_to(datadir)) for p in datadir.rglob('*.dat')]
 # with open("README.md", "r") as fh:
 	# long_description = fh.read()
 
@@ -30,6 +22,7 @@ setuptools.setup(
 		# "Operating System :: OS Independent",
 	],
 	package_data = {
-        'ximc': files2install
-    }
+        '': files
+    },
+    include_package_data=True,
 )
