@@ -19,7 +19,7 @@ setuptools.setup(
 		"License :: OSI Approved :: MIT License",
 		# "Operating System :: OS Independent",
 	],
-	package_data = [
-        ('`ximc', glob('ximc/*', recursive=True))
-    ]
+	package_data = {
+        'ximc': glob('ximc/*', recursive=True)
+    }
 )
