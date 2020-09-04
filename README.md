@@ -32,3 +32,7 @@ print(z_stage.get_position())
 z_stage.move_rel(-10) # Move the stage 10 steps backwards
 print(z_stage.get_position())
 ```
+
+## More info
+
+The X,Y,Z stages in the setup are controlled by [8SMC5-USB - Stepper & DC Motor Controller](http://www.standa.lt/products/catalog/motorised_positioners?item=525). The programming interface is descripted [here](https://doc.xisupport.com/en/8smc5-usb/8SMCn-USB/Programming.html). In the "comunity examples" section of the previous link I found [this repository](https://github.com/Negrebetskiy/Attenuator) which I took as stargint point to write PyticularsTCT.
