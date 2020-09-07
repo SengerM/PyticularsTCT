@@ -13,21 +13,43 @@ pip3 install git+https://github.com/SengerM/PyticularsTCT
 This was only tested in the PC located in the G floor lab under Windows and in Python 3. It works fine.
 
 ```Python
-import PyticularsTCT as PTCT
+from PyticularsTCT.oscilloscope import LecroyWR640Zi
+from PyticularsTCT.stage import Stage
+import matplotlib.pyplot as plt
+import numpy as np
 
-x_stage = PTCT.Stage(port = 'COM3') # Use NiMax to find the port of each stage.
-y_stage = PTCT.Stage(port = 'COM4')
-z_stage = PTCT.Stage(port = 'COM5')
+############################################################
 
-print('Starging position = ' + str(z_stage.position)) # Prints the current position in meters.
-z_stage.move_to(0) # Move the stage to the 0 position.
-print(z_stage.position)
-z_stage.move_to(1e-2) # Moves the stage 1 cm in forward direction.
-print(z_stage.position)
-z_stage.move_rel(-1e-3) # Move the stage 1 mm in backward direction.
-print(z_stage.position)
-z_stage.move_rel(21e-3) # Moves the stage 2.1 cm in forward direction.
-print(z_stage.position)
+DELTA_X = 10e-6
+N_STEPS_X = 9
+
+############################################################
+
+osc = LecroyWR640Zi('USB0::0x05FF::0x1023::2810N60091::INSTR')
+x_stage = Stage(port='COM3')
+y_stage = Stage(port='COM4')
+z_stage = Stage(port='COM5')
+
+initial_x = x_stage.position # Store it to return after measuring.
+print(f'Initial position = {initial_x} m')
+
+for nx in range(N_STEPS_X):
+    print(f'Moving to position {initial_x+nx*DELTA_X} m...')
+    x_stage.move_rel(nx*DELTA_X)
+    print('Acquiring signals...')
+    signals = osc.acquire_one_pulse()
+    
+    fig, ax = plt.subplots()
+    for ch in list(signals.keys()):
+        ax.plot(signals[ch], label = ch, marker = '.')
+    ax.legend()
+
+print('Moving back to initial position...')
+x_stage.move_to(initial_x)
+print(f'Current position = {x_stage.position} m')
+print('Finished! :)')
+
+plt.show()
 ```
 
 ## More info
