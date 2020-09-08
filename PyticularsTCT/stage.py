@@ -67,7 +67,7 @@ class Stage:
             raise TypeError('<steps> must be an int')
         if not isinstance(usteps, int):
             raise TypeError('<usteps> must be an int')
-        if not 0 <= usteps < 255:
+        if not 0 <= usteps <= 255:
             raise ValueError('<usteps> must be between 0 and 255 (1 step = 255 usteps)')
         pyximc.lib.command_move(self._dev_id, steps, usteps) # https://libximc.xisupport.com/doc-en/ximc_8h.html#aa6113a42efa241396c72226bba9acd59
         pyximc.lib.command_wait_for_stop(self._dev_id, 10) # https://libximc.xisupport.com/doc-en/ximc_8h.html#ad9324f278bf9b97ad85b3411562ef0f7
@@ -77,7 +77,7 @@ class Stage:
             raise TypeError('<steps> must be an int')
         if not isinstance(usteps, int):
             raise TypeError('<usteps> must be an int')
-        if not 0 <= usteps < 255:
+        if not 0 <= usteps <= 255:
             raise ValueError('<usteps> must be between 0 and 255 (1 step = 255 usteps)')
         pyximc.lib.command_movr(self._dev_id, steps, usteps)
         pyximc.lib.command_wait_for_stop(self._dev_id, 10)
