@@ -37,7 +37,7 @@ class LecroyWR640Zi:
                 sample -= 255
             volts.append(sample/25*vdiv - ofst)
             times.append(tdiv*14/2+idx/sampling_rate)
-        return {'t': times, 'v': volts}
+        return {'time': times, 'volt': volts}
 
     def acquire_one_pulse(self):
         current_trigger = self.query('TRIG_MODE?')

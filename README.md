@@ -15,13 +15,14 @@ This was only tested in the PC located in the G floor lab under Windows and in P
 ```Python
 from PyticularsTCT.oscilloscope import LecroyWR640Zi
 from PyticularsTCT.stage import Stage
+from PyticularsTCT.utils import save_4CH_trigger
 import matplotlib.pyplot as plt
 import numpy as np
 
 ############################################################
 
 DELTA_X = 10e-6
-N_STEPS_X = 2
+N_STEPS_X = 5
 
 ############################################################
 
@@ -39,14 +40,22 @@ for nx in range(N_STEPS_X):
     print('Acquiring signals...')
     signals = osc.acquire_one_pulse()
     
+    save_4ch_trigger(
+        fname = f'data/{nx}.txt',
+        position = (x_stage.position, y_stage.position, z_stage.position),
+        data = signals,
+    )
+    
     fig, ax = plt.subplots()
     for ch in list(signals.keys()):
         ax.plot(
-            signals[ch]['t'],
-            signals[ch]['v'],
+            signals[ch]['time'],
+            signals[ch]['volt'],
             label = ch, 
             marker = '.'
         )
+    ax.set_xlabel('Time (s)')
+    ax.set_ylabel('Amplitude (V)')
     ax.legend()
 
 print('Moving back to initial position...')
