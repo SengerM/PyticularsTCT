@@ -25,18 +25,20 @@ class LecroyWR640Zi:
         if not isinstance(CH, int) or not 1 <= CH <= 4:
             raise ValueError('<CH> must be in {1,2,3,4}')
         self.write(f'C{CH}:WF?')
-        raw_data = list(self.resource.read_raw())
-        volt = []
-        for sample in raw_data:
-            if sample > 127:
-                sample -= 255
-            volt.append(sample)
+        raw_data = list(self.resource.read_raw())[360:-1] # By some unknown reason the first 359 samples are crap, and also the last one.
+        tdiv = float(self.query('TDIV?'))
+        sampling_rate = float(self.query(r"""VBS? 'return=app.Acquisition.Horizontal.SamplingRate'""")) # This line is a combination of http://cdn.teledynelecroy.com/files/manuals/maui-remote-control-and-automation-manual.pdf and p. 1-20 http://cdn.teledynelecroy.com/files/manuals/automation_command_ref_manual_ws.pdf
         vdiv = float(self.query('c1:vdiv?'))
         ofst = float(self.query('c1:ofst?'))
-        for sample in volt:
-            sample = sample/25*vdiv - ofst
-        return volt[360:-1] # By some unknown reason the first 359 samples are crap, and also the last one.
-    
+        times = []
+        volts = []
+        for idx,sample in enumerate(raw_data):
+            if sample > 127:
+                sample -= 255
+            volts.append(sample/25*vdiv - ofst)
+            times.append(tdiv*14/2+idx/sampling_rate)
+        return {'t': times, 'v': volts}
+
     def acquire_one_pulse(self):
         current_trigger = self.query('TRIG_MODE?')
         self.write('TRIG_MODE SINGLE') # We want the 4 channels from a single trigger.
@@ -46,16 +48,3 @@ class LecroyWR640Zi:
             signals[f'CH{ch}'] = self.get_wf(CH=ch)
         self.write('TRIG_MODE ' + current_trigger) # Set the trigger back to the original configuration.
         return signals
-
-if __name__ == '__main__':
-    import matplotlib.pyplot as plt
-    osc = LecroyWR640Zi('USB0::0x05FF::0x1023::2810N60091::INSTR')
-    print('IDN: ' + osc.idn)
-    print('Acquiring signals...')
-    signals = osc.acquire_one_pulse()
-    print('Plotting...')
-    fig, ax = plt.subplots()
-    for ch in list(signals.keys()):
-        ax.plot(signals[ch], label = ch, marker = '.')
-    ax.legend()
-    plt.show()

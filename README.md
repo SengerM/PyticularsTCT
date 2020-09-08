@@ -21,7 +21,7 @@ import numpy as np
 ############################################################
 
 DELTA_X = 10e-6
-N_STEPS_X = 9
+N_STEPS_X = 2
 
 ############################################################
 
@@ -41,7 +41,12 @@ for nx in range(N_STEPS_X):
     
     fig, ax = plt.subplots()
     for ch in list(signals.keys()):
-        ax.plot(signals[ch], label = ch, marker = '.')
+        ax.plot(
+            signals[ch]['t'],
+            signals[ch]['v'],
+            label = ch, 
+            marker = '.'
+        )
     ax.legend()
 
 print('Moving back to initial position...')
