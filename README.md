@@ -15,7 +15,7 @@ This was only tested in the PC located in the G floor lab under Windows and in P
 ```Python
 from PyticularsTCT.oscilloscope import LecroyWR640Zi
 from PyticularsTCT.stage import Stage
-from PyticularsTCT.utils import save_4CH_trigger
+from PyticularsTCT.utils import save_4ch_trigger
 import matplotlib.pyplot as plt
 import numpy as np
 
