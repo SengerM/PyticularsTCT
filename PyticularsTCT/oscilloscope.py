@@ -31,8 +31,10 @@ class LecroyWR640Zi:
             if sample > 127:
                 sample -= 255
             volt.append(sample)
+        vdiv = float(self.query('c1:vdiv?'))
+        ofst = float(self.query('c1:ofst?'))
         for sample in volt:
-            sample = sample/25*float(self.query('c1:vdiv?')) - float(self.query('c1:ofst?'))
+            sample = sample/25*vdiv - ofst
         return volt[360:-1] # By some unknown reason the first 359 samples are crap, and also the last one.
     
     def acquire_one_pulse(self):
