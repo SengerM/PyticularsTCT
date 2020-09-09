@@ -48,3 +48,19 @@ class LecroyWR640Zi:
             signals[f'CH{ch}'] = self.get_wf(CH=ch)
         self.write('TRIG_MODE ' + current_trigger) # Set the trigger back to the original configuration.
         return signals
+    
+    @property
+    def trig_mode(self):
+        return self.query('TRIG_MODE?')
+    
+    @trig_mode.setter
+    def trig_mode(self, mode: str):
+        self.set_trig_mode(mode)
+    
+    def set_trig_mode(self, mode: str):
+        OPTIONS = ['AUTO', 'NORM', 'STOP', 'SINGLE']
+        if not isinstance(mode, str):
+            raise TypeError('<mode> must be a string')
+        if mode.upper() not in OPTIONS:
+            raise ValueError('<mode> must be one of ' + str(OPTIONS))
+        self.write('TRIG_MODE ' + mode)
