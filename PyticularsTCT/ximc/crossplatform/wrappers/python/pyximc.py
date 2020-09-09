@@ -15,7 +15,6 @@ def ximc_shared_lib():
         return CDLL("libximc.framework/libximc")
     elif platform.system() == "Windows":
         ximc_base_path = '\\'.join(this_file_path.split('\\')[:-3])
-        print(ximc_base_path)
         return WinDLL(ximc_base_path + '\\win64\\libximc.dll')
     else:
         return None
