@@ -40,18 +40,18 @@ class LecroyWR640Zi:
         return {'time': times, 'volt': volts}
 
     def acquire_one_pulse(self):
-        current_trigger = self.query('TRIG_MODE?')
-        self.write('TRIG_MODE SINGLE') # We want the 4 channels from a single trigger.
+        current_trigger = self.trig_mode
+        self.trig_mode = 'SINGLE' # We want the 4 channels from a single trigger.
         # I assume that the triggering is almost instantaneous so I don't have to put a delay here.
         signals = {}
         for ch in [1,2,3,4]:
             signals[f'CH{ch}'] = self.get_wf(CH=ch)
-        self.write('TRIG_MODE ' + current_trigger) # Set the trigger back to the original configuration.
+        self.trig_mod = current_trigger # Set the trigger back to the original configuration.
         return signals
     
     @property
     def trig_mode(self):
-        return self.query('TRIG_MODE?')
+        return self.query('TRIG_MODE?').replace('\n','')
     
     @trig_mode.setter
     def trig_mode(self, mode: str):
