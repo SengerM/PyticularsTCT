@@ -62,7 +62,7 @@ class Stage:
     def reset_position(self):
         pyximc.lib.command_homezero(self._dev_id)
     
-    def _move_to(self, steps: int, usteps: int):
+    def _move_to(self, steps: int, usteps: int, blocking: bool):
         if not isinstance(steps, int):
             raise TypeError('<steps> must be an int')
         if not isinstance(usteps, int):
@@ -70,9 +70,10 @@ class Stage:
         if not 0 <= usteps <= 255:
             raise ValueError('<usteps> must be between 0 and 255 (1 step = 255 usteps)')
         pyximc.lib.command_move(self._dev_id, steps, usteps) # https://libximc.xisupport.com/doc-en/ximc_8h.html#aa6113a42efa241396c72226bba9acd59
-        pyximc.lib.command_wait_for_stop(self._dev_id, 10) # https://libximc.xisupport.com/doc-en/ximc_8h.html#ad9324f278bf9b97ad85b3411562ef0f7
+        if blocking == True:
+            pyximc.lib.command_wait_for_stop(self._dev_id, 10) # https://libximc.xisupport.com/doc-en/ximc_8h.html#ad9324f278bf9b97ad85b3411562ef0f7
     
-    def _move_rel(self, steps: int, usteps: int):
+    def _move_rel(self, steps: int, usteps: int, blocking: bool):
         if not isinstance(steps, int):
             raise TypeError('<steps> must be an int')
         if not isinstance(usteps, int):
@@ -80,17 +81,20 @@ class Stage:
         if not 0 <= usteps <= 255:
             raise ValueError('<usteps> must be between 0 and 255 (1 step = 255 usteps)')
         pyximc.lib.command_movr(self._dev_id, steps, usteps)
-        pyximc.lib.command_wait_for_stop(self._dev_id, 10)
+        if blocking == True:
+            pyximc.lib.command_wait_for_stop(self._dev_id, 10)
     
-    def move_to(self, m):
+    def move_to(self, m, blocking=True):
         # Move to <m> position, where <m> is in meters.
+        # If <blocking> is True, the execution of the program is blocked until the moving operation is completed, else the execution of the program continues while the stage is moving.
         steps, usteps = m2steps(m)
-        self._move_to(steps, usteps)
+        self._move_to(steps, usteps, blocking = blocking)
     
-    def move_rel(self, m):
+    def move_rel(self, m, blocking=True):
         # Move relative <m> meters.
+        # If <blocking> is True, the execution of the program is blocked until the moving operation is completed, else the execution of the program continues while the stage is moving.
         steps, usteps = m2steps(m)
-        self._move_rel(steps, usteps)
+        self._move_rel(steps, usteps, blocking = blocking)
     
     def get_position(self):
         # Returns the position of the stage in "steps", "usteps" and "EncPosition" I don't know what it means.
@@ -103,3 +107,4 @@ class Stage:
         # Returns the position of the stage in meters.
         pos = self.get_position()
         return steps2m(pos['Position'], pos['uPosition'])
+    
