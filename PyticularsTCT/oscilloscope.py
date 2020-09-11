@@ -1,4 +1,5 @@
 import pyvisa
+from time import sleep
 
 class LecroyWR640Zi:
     def __init__(self, name):
@@ -41,6 +42,8 @@ class LecroyWR640Zi:
 
     def acquire_one_pulse(self):
         current_trigger = self.trig_mode
+        self.trig_mode = 'AUTO' # Set it to auto so if there is no signal, it records "almost 0" (noise) and not the previous trigger.
+        sleep(0.1) # Wait for the oscilloscope to change the trigger mode.
         self.trig_mode = 'SINGLE' # We want the 4 channels from a single trigger.
         # I assume that the triggering is almost instantaneous so I don't have to put a delay here.
         signals = {}
