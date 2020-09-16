@@ -1,9 +1,8 @@
-# This was adapted from https://github.com/Negrebetskiy/Attenuator
-
 import os
 import sys
 import time
 import ctypes
+import math
 
 if sys.version_info >= (3,0):
     import urllib.parse
@@ -18,6 +17,16 @@ if sys.platform in ("win32", "win64"):
     os.environ["Path"] = libdir + ";" + os.environ["Path"]
 
 import pyximc
+
+###########################################################
+
+def m2steps(m: float):
+    # Converts "meters" to "steps".
+    return math.floor(m*1e6/2.5), int((m*1e6/2.5-math.floor(m*1e6/2.5))*2**8)
+
+def steps2m(steps, usteps):
+    # Converts "steps" to "meters".
+    return steps*2.5*1e-6 + usteps*2.5*1e-6/2**8
 
 class Stage:
     """
@@ -53,47 +62,49 @@ class Stage:
     def reset_position(self):
         pyximc.lib.command_homezero(self._dev_id)
     
-    def move_to(self, steps: int = 0, usteps: int = 0):
+    def _move_to(self, steps: int, usteps: int, blocking: bool):
         if not isinstance(steps, int):
             raise TypeError('<steps> must be an int')
         if not isinstance(usteps, int):
             raise TypeError('<usteps> must be an int')
-        if not 0 <= usteps < 255:
+        if not 0 <= usteps <= 255:
             raise ValueError('<usteps> must be between 0 and 255 (1 step = 255 usteps)')
         pyximc.lib.command_move(self._dev_id, steps, usteps) # https://libximc.xisupport.com/doc-en/ximc_8h.html#aa6113a42efa241396c72226bba9acd59
-        pyximc.lib.command_wait_for_stop(self._dev_id, 10) # https://libximc.xisupport.com/doc-en/ximc_8h.html#ad9324f278bf9b97ad85b3411562ef0f7
+        if blocking == True:
+            pyximc.lib.command_wait_for_stop(self._dev_id, 10) # https://libximc.xisupport.com/doc-en/ximc_8h.html#ad9324f278bf9b97ad85b3411562ef0f7
     
-    def move_rel(self, steps: int = 0, usteps: int = 0):
+    def _move_rel(self, steps: int, usteps: int, blocking: bool):
         if not isinstance(steps, int):
             raise TypeError('<steps> must be an int')
         if not isinstance(usteps, int):
             raise TypeError('<usteps> must be an int')
-        if not 0 <= usteps < 255:
+        if not 0 <= usteps <= 255:
             raise ValueError('<usteps> must be between 0 and 255 (1 step = 255 usteps)')
         pyximc.lib.command_movr(self._dev_id, steps, usteps)
-        pyximc.lib.command_wait_for_stop(self._dev_id, 10)
+        if blocking == True:
+            pyximc.lib.command_wait_for_stop(self._dev_id, 10)
+    
+    def move_to(self, m, blocking=True):
+        # Move to <m> position, where <m> is in meters.
+        # If <blocking> is True, the execution of the program is blocked until the moving operation is completed, else the execution of the program continues while the stage is moving.
+        steps, usteps = m2steps(m)
+        self._move_to(steps, usteps, blocking = blocking)
+    
+    def move_rel(self, m, blocking=True):
+        # Move relative <m> meters.
+        # If <blocking> is True, the execution of the program is blocked until the moving operation is completed, else the execution of the program continues while the stage is moving.
+        steps, usteps = m2steps(m)
+        self._move_rel(steps, usteps, blocking = blocking)
     
     def get_position(self):
+        # Returns the position of the stage in "steps", "usteps" and "EncPosition" I don't know what it means.
         pos = pyximc.get_position_t()
         pyximc.lib.get_position(self._dev_id, ctypes.byref(pos))
         return {'Position': pos.Position, 'uPosition': pos.uPosition, 'EncPosition': pos.EncPosition}
-
-if __name__ == "__main__":
-    stages = []
-    for port in ['COM3', 'COM4', 'COM5']:
-        stages.append(Stage(port))
-    X = stages[0]
-    Y = stages[1]
-    Z = stages[2]
-    for stage in stages:
-        print(stage.serial_number)
-        print(stage.information)
     
-    # stage.reset_position()
-    while True:
-        print(Z.get_position())
-        pos = int(input('Enter new position: '))
-        print(f'Moving stage to {pos}...')
-        Z.move_to(steps = pos)
-
+    @property
+    def position(self):
+        # Returns the position of the stage in meters.
+        pos = self.get_position()
+        return steps2m(pos['Position'], pos['uPosition'])
     
