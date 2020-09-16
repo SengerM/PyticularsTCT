@@ -3,6 +3,7 @@ import sys
 import time
 import ctypes
 import math
+import warnings
 
 if sys.version_info >= (3,0):
 	import urllib.parse
@@ -77,6 +78,8 @@ class Stage:
 		# Move relative <m> meters.
 		# If <blocking> is True, the execution of the program is blocked until the moving operation is completed, else the execution of the program continues while the stage is moving.
 		steps, usteps = m2steps(m)
+		if steps == usteps == 0:
+			warnings.warn(f'I was told to move the stage in <m>={m} meters (relative to its current position) and this is less than the minimum step of the stage, thus it will not be moved.')
 		self._move_rel(steps, usteps, blocking = blocking)
 	
 	def get_position(self):
