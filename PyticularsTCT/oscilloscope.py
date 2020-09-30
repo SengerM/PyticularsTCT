@@ -5,6 +5,7 @@ class LecroyWR640Zi:
     def __init__(self, name):
         rm = pyvisa.ResourceManager()
         self.resource = rm.open_resource(name)
+        self.write('CHDR OFF') # This is to receive only numerical data in the answers and not also the echo of the command and some other stuff. See p. 22 of http://cdn.teledynelecroy.com/files/manuals/tds031000-2000_programming_manual.pdf
     
     @property
     def idn(self):
