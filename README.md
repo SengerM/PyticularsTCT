@@ -1,12 +1,17 @@
 # PyticularsTCT
 
-Package to control [Particulars TCT](http://particulars.si/) in Python.
+Package to control [Particulars TCT](http://particulars.si/) using Python.
 
 ## Installation
 
 ```
 pip3 install git+https://github.com/SengerM/PyticularsTCT
 ```
+If you receive some error like ```ERROR: Could not install packages due to an EnvironmentError: [Errno 30] Read-only file system: BLA BLA BLA``` you can try instead 
+```
+pip3 install git+https://github.com/SengerM/PyticularsTCT --user
+```
+which has proven to work in the past. This solution was found [here](https://stackoverflow.com/a/53916143/8849755).
 
 ## Usage
 
