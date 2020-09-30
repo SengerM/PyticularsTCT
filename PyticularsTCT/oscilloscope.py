@@ -27,7 +27,7 @@ class LecroyWR640Zi:
         if not isinstance(CH, int) or not 1 <= CH <= 4:
             raise ValueError('<CH> must be in {1,2,3,4}')
         self.write(f'C{CH}:WF?')
-        raw_data = list(self.resource.read_raw())[360:-1] # By some unknown reason the first 359 samples are crap, and also the last one.
+        raw_data = list(self.resource.read_raw())[361:-1] # By some unknown reason the first 360 samples are crap, and also the last one.
         tdiv = float(self.query('TDIV?'))
         sampling_rate = float(self.query(r"""VBS? 'return=app.Acquisition.Horizontal.SamplingRate'""")) # This line is a combination of http://cdn.teledynelecroy.com/files/manuals/maui-remote-control-and-automation-manual.pdf and p. 1-20 http://cdn.teledynelecroy.com/files/manuals/automation_command_ref_manual_ws.pdf
         vdiv = float(self.query('c1:vdiv?'))
