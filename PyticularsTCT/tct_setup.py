@@ -1,7 +1,7 @@
 from .stage import Stage
 import numpy as np
 
-class TCT:
+class TCTStages:
 	def __init__(self, x_stage_port='COM3', y_stage_port='COM4', z_stage_port='COM5'):
 		self.x_stage = Stage(port=x_stage_port)
 		self.y_stage = Stage(port=y_stage_port)
@@ -14,6 +14,8 @@ class TCT:
 	
 	def move_rel(self, x=None: float, y=None: float, z=None: float):
 		for stage, dist in zip(self._stages, [x,y,z]):
+			if dist == None:
+				continue
 			stage.move_rel(dist,blocking=True)
 	
 	@property
