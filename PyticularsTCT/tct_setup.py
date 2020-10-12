@@ -8,11 +8,13 @@ class TCTStages:
 		self.z_stage = Stage(port=z_stage_port)
 		self._stages = [self.x_stage, self.y_stage, self.z_stage]
 	
-	def move_to(self, x=None: float, y=None: float, z=None: float):
+	def move_to(self, x=None, y=None, z=None):
 		for stage, pos in zip(self._stages, [x,y,z]):
+			if pos == None:
+				continue
 			stage.move_to(pos,blocking=True)
 	
-	def move_rel(self, x=None: float, y=None: float, z=None: float):
+	def move_rel(self, x=None, y=None, z=None):
 		for stage, dist in zip(self._stages, [x,y,z]):
 			if dist == None:
 				continue
