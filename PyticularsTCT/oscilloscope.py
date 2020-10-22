@@ -72,9 +72,7 @@ class LecroyWR640Zi:
 	def set_vdiv(self, ch: int, vdiv: float):
 		if ch not in [1,2,3,4]:
 			raise ValueError(f'<ch> must be an integer in [1, 2, 3, 4]. Received {ch}')
-		if not isinstance(vdiv, float):
-			raise ValueError(f'<vdiv> must be a float in units V/div, received {vdiv}')
-		self.write(f'C{ch}:VDIV {vdiv}') # http://cdn.teledynelecroy.com/files/manuals/tds031000-2000_programming_manual.pdf#page=47
+		self.write(f'C{ch}:VDIV {float(vdiv)}') # http://cdn.teledynelecroy.com/files/manuals/tds031000-2000_programming_manual.pdf#page=47
 	
 	def get_vdiv(self, ch: int): # Getter.
 		if ch not in [1,2,3,4]:
