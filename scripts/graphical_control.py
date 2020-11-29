@@ -64,10 +64,39 @@ class CoordinatesControl(tk.Frame):
 	def jump_to_position_btn_command(self):
 		position_to_go_to = self.coordinates.get_coordinates()
 		print(f'Moving stages to {position_to_go_to}...')
+		for val in position_to_go_to:
+			try:
+				float(val)
+			except:
+				tk.messagebox.showerror(message = f'Check your input. Coordinates must be float numbers, received "{val}"')
+				return
 		self.stages.move_to(*position_to_go_to)
 		new_pos = self.stages.position
 		print(f'Stages moved, new position is {new_pos}')
 		self.coordinates.set_coordinates(*new_pos)
+	
+	def get_coordinates(self):
+		return self.coordinates.get_coordinates()
+	
+	def set_coordinates(self, x=None, y=None, z=None):
+		self.coordinates.set_coordinates(x,y,z)
+
+class CoordinatesMemory(tk.Frame):
+	def __init__(self, parent, stages, coordinates_name=None, *args, **kwargs):
+		tk.Frame.__init__(self, parent, *args, **kwargs)
+		self.parent = parent
+		
+		self.stages = stages
+		self.coordinates_control = CoordinatesControl(self, stages, coordinates_name=coordinates_name)
+		self.coordinates_control.grid()
+		self.store_position_btn = tk.Button(self, text = 'Store current position', command = self.store_current_position_command)
+		self.store_position_btn.grid()
+	
+	def store_current_position_command(self):
+		current_pos = stages.position
+		self.coordinates_control.set_coordinates(*current_pos)
+		print(f'Stored current position...')
+		
 
 class StagesJoystick(tk.Frame):
 	def __init__(self, parent, stages, current_coordinates_display, *args, **kwargs):
@@ -130,7 +159,7 @@ if __name__ == "__main__":
 	stages = TCTStages()
 
 	root = tk.Tk()
-	root.title('Stages control')
+	root.title('Pyticulares stages control')
 	current_position_frame = tk.Frame(root)
 	controls_frame = tk.Frame(root)
 	current_position_frame.grid()
@@ -140,7 +169,14 @@ if __name__ == "__main__":
 	current_coordinates.grid()
 	current_coordinates.coordinates.set_coordinates(*stages.position)
 	
-	joystick = StagesJoystick(parent=controls_frame, stages=stages, current_coordinates_display = current_coordinates.coordinates)
-	joystick.grid()
+	joystick = StagesJoystick(parent=controls_frame, stages=stages, current_coordinates_display=current_coordinates)
+	joystick.grid(pady=20)
+	
+	for k in range(3):
+		CoordinatesMemory(
+			parent = root, 
+			stages = stages,
+			coordinates_name = f'Position memory # {k+1}',
+		).grid(pady=20)
 
 	root.mainloop()
