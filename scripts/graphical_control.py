@@ -63,13 +63,13 @@ class CoordinatesControl(tk.Frame):
 		
 	def jump_to_position_btn_command(self):
 		position_to_go_to = self.coordinates.get_coordinates()
-		print(f'Moving stages to {position_to_go_to}...')
 		for val in position_to_go_to:
 			try:
 				float(val)
 			except:
 				tk.messagebox.showerror(message = f'Check your input. Coordinates must be float numbers, received "{val}"')
 				return
+		print(f'Moving stages to {position_to_go_to}...')
 		self.stages.move_to(*position_to_go_to)
 		new_pos = self.stages.position
 		print(f'Stages moved, new position is {new_pos}')
@@ -96,6 +96,12 @@ class CoordinatesMemory(tk.Frame):
 		current_pos = stages.position
 		self.coordinates_control.set_coordinates(*current_pos)
 		print(f'Stored current position...')
+	
+	def get_coordinates(self):
+		return self.coordinates_control.get_coordinates()
+	
+	def set_coordinates(self, x=None, y=None, z=None):
+		self.coordinates_control.set_coordinates(x,y,z)
 		
 
 class StagesJoystick(tk.Frame):
@@ -141,6 +147,7 @@ class StagesJoystick(tk.Frame):
 			step = float(self.step_entry.get())*1e-6
 		except:
 			tk.messagebox.showerror(message = f'Check your input in "step". It must be a float but you have entered "{self.step_entry.get()}"')
+			return
 		print(f'Moving {step*1e6} µm in {direction}{coordinate}...')
 		move = [0,0,0]
 		for idx,xyz in enumerate(['x', 'y', 'z']):
@@ -173,10 +180,12 @@ if __name__ == "__main__":
 	joystick.grid(pady=20)
 	
 	for k in range(3):
-		CoordinatesMemory(
+		memory = CoordinatesMemory(
 			parent = root, 
 			stages = stages,
 			coordinates_name = f'Position memory # {k+1}',
-		).grid(pady=20)
+		)
+		memory.grid(pady=20)
+		memory.set_coordinates(*stages.position)
 
 	root.mainloop()
