@@ -16,7 +16,7 @@ class TCTStages:
 	
 	def move_rel(self, x=None, y=None, z=None):
 		for stage, dist in zip(self._stages, [x,y,z]):
-			if dist == None:
+			if dist == None or dist == 0:
 				continue
 			stage.move_rel(dist,blocking=True)
 	
