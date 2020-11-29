@@ -2,108 +2,145 @@ import tkinter as tk
 import tkinter.messagebox
 import numpy as np
 from PyticularsTCT.tct_setup import TCTStages # https://github.com/SengerM/PyticularsTCT
+import numbers
 
 ########################################################################
 
+class CoordinatesFrame(tk.Frame):
+	def __init__(self, parent, coordinates_name=None, *args, **kwargs):
+		tk.Frame.__init__(self, parent, *args, **kwargs)
+		self.parent = parent
+		
+		if coordinates_name != None:
+			tk.Label(self, text = f'{coordinates_name}:').grid()
+		self.entries_coordinates = {}
+		entries_frame = tk.Frame(self)
+		entries_frame.grid()
+		for idx,coord in enumerate(['x', 'y', 'z']):
+			tk.Label(entries_frame, text = f'{coord} (mm) = ').grid(
+				row = idx,
+				column = 0,
+				pady = 2,
+			)
+			self.entries_coordinates[coord] = tk.Entry(entries_frame, validate = 'key')
+			self.entries_coordinates[coord].grid(
+				row = idx,
+				column = 1,
+				pady = 2,
+			)
+			self.entries_coordinates[coord].insert(0,'?')
+			
+	def get_coordinates(self):
+		coords = []
+		for coord in ['x', 'y', 'z']: 
+			try:
+				coords.append(float(self.entries_coordinates[coord].get())*1e-3)
+			except ValueError:
+				coords.append(self.entries_coordinates[coord].get())
+		return tuple(coords)
+	
+	def set_coordinates(self, x=None, y=None, z=None):
+		for xyz,coord in zip([x,y,z],['x', 'y', 'z']):
+			if xyz == None:
+				continue
+			if not isinstance(xyz, numbers.Number):
+				raise TypeError(f'Coordinates must be numbers, received {xyz} of type {type(xyz)}')
+			self.entries_coordinates[coord].delete(0,'end')
+			self.entries_coordinates[coord].insert(0,xyz*1e3)
+
+class CoordinatesControl(tk.Frame):
+	def __init__(self, parent, stages, coordinates_name=None, *args, **kwargs):
+		tk.Frame.__init__(self, parent, *args, **kwargs)
+		self.parent = parent
+		
+		self.stages = stages
+		
+		self.coordinates = CoordinatesFrame(parent=self,coordinates_name=coordinates_name)
+		self.coordinates.grid()
+		
+		self.jump_to_position_btn = tk.Button(self,text = 'Go to this position', command = self.jump_to_position_btn_command)
+		self.jump_to_position_btn.grid()
+		
+	def jump_to_position_btn_command(self):
+		position_to_go_to = self.coordinates.get_coordinates()
+		print(f'Moving stages to {position_to_go_to}...')
+		self.stages.move_to(*position_to_go_to)
+		new_pos = self.stages.position
+		print(f'Stages moved, new position is {new_pos}')
+		self.coordinates.set_coordinates(*new_pos)
+
+class StagesJoystick(tk.Frame):
+	def __init__(self, parent, stages, current_coordinates_display, *args, **kwargs):
+		tk.Frame.__init__(self, parent, *args, **kwargs)
+		self.parent = parent
+		
+		self.stages = stages
+		self.current_coordinates_display = current_coordinates_display
+		
+		step_frame = tk.Frame(self)
+		controls_frame = tk.Frame(self)
+		step_frame.grid()
+		controls_frame.grid()
+		xy_frame = tk.Frame(controls_frame)
+		z_frame = tk.Frame(controls_frame)
+		xy_frame.grid(row=0,column=0)
+		z_frame.grid(row=0,column=1)
+		tk.Label(step_frame, text='Step (µm) = ').grid(row=0,column=0)
+		
+		self.step_entry = tk.Entry(step_frame)
+		self.step_entry.grid(row=0,column=1)
+		self.step_entry.insert(0,'10')
+		
+		self.buttons = {}
+		for xyz in ['x', 'y', 'z']:
+			self.buttons[xyz] = {}
+			for direction in ['-','+']:
+				self.buttons[xyz][direction] = tk.Button(
+					xy_frame if xyz in ['x','y'] else z_frame,
+					text = f'{direction}{xyz}',
+				)
+				self.buttons[xyz][direction]['command'] = lambda xyz=xyz,direction=direction: self.move_command(xyz,direction)
+		self.buttons['x']['-'].grid(row=1,column=0)
+		self.buttons['x']['+'].grid(row=1,column=2)
+		self.buttons['y']['-'].grid(row=0,column=1)
+		self.buttons['y']['+'].grid(row=2,column=1)
+		self.buttons['z']['-'].grid(row=0)
+		self.buttons['z']['+'].grid(row=1)
+	
+	def move_command(self, coordinate, direction):
+		try:
+			step = float(self.step_entry.get())*1e-6
+		except:
+			tk.messagebox.showerror(message = f'Check your input in "step". It must be a float but you have entered "{self.step_entry.get()}"')
+		print(f'Moving {step*1e6} µm in {direction}{coordinate}...')
+		move = [0,0,0]
+		for idx,xyz in enumerate(['x', 'y', 'z']):
+			if xyz == coordinate:
+				move[idx] = step
+				if direction == '-':
+					move[idx] *= -1
+		self.stages.move_rel(*tuple(move))
+		new_pos = self.stages.position
+		print(f'Stages moved, new position is {new_pos}')
+		self.current_coordinates_display.set_coordinates(*new_pos)
+		
 # Interfase creation:
 
-root = tk.Tk()
-root.title('Stages control')
+if __name__ == "__main__":
+	stages = TCTStages()
 
-coordinates_display_frame = tk.Frame(root)
-entries_coordinates = {}
-for idx,coord in enumerate(['x', 'y', 'z']):
-	tk.Label(coordinates_display_frame, text = f'{coord} (mm) = ').grid(
-		row = idx,
-		column = 0,
-		pady = 2,
-	)
-	entries_coordinates[coord] = tk.Entry(coordinates_display_frame)
-	entries_coordinates[coord].grid(
-		row = idx,
-		column = 1,
-		pady = 2,
-	)
-	entries_coordinates[coord].insert(0,'?')
+	root = tk.Tk()
+	root.title('Stages control')
+	current_position_frame = tk.Frame(root)
+	controls_frame = tk.Frame(root)
+	current_position_frame.grid()
+	controls_frame.grid()
 
-controls_frame = tk.Frame(root)
-step_frame = tk.Frame(controls_frame)
-tk.Label(step_frame, text='Step (µm) = ').grid()
-step_entry = tk.Entry(step_frame, text = '1')
-step_entry.grid(row=0,column=1)
-step_entry.insert(0,'10')
-xy_controls_frame = tk.Frame(controls_frame)
-z_controls_frame = tk.Frame(controls_frame)
-single_movement_buttons = {}
-for coord in ['x', 'y', 'z']:
-	single_movement_buttons[coord] = {}
-	for direction in ['-','+']:
-		single_movement_buttons[coord][direction] = tk.Button(
-			xy_controls_frame if coord in ['x','y'] else z_controls_frame,
-			text = f'{direction}{coord}',
-		)
-single_movement_buttons['x']['-'].grid(row=1,column=0)
-single_movement_buttons['x']['+'].grid(row=1,column=2)
-single_movement_buttons['y']['-'].grid(row=0,column=1)
-single_movement_buttons['y']['+'].grid(row=2,column=1)
-single_movement_buttons['z']['-'].grid(row=0)
-single_movement_buttons['z']['+'].grid(row=1)
+	current_coordinates = CoordinatesControl(current_position_frame, stages=stages, coordinates_name='Current position')
+	current_coordinates.grid()
+	current_coordinates.coordinates.set_coordinates(*stages.position)
+	
+	joystick = StagesJoystick(parent=controls_frame, stages=stages, current_coordinates_display = current_coordinates.coordinates)
+	joystick.grid()
 
-jump_to_position_button = tk.Button(controls_frame, text = 'Jump to position')
-
-jump_to_position_button.grid(row=0)
-step_frame.grid(row=1)
-xy_controls_frame.grid(row=2,column=0)
-z_controls_frame.grid(row=2,column=1)
-coordinates_display_frame.grid()
-controls_frame.grid()
-
-########################################################################
-
-# Commands:
-
-stages = TCTStages()
-
-def get_position():
-	position = stages.position
-	for idx,coord in enumerate(['x','y','z']):
-		entries_coordinates[coord].delete(0,'end')
-		entries_coordinates[coord].insert(0,position[idx]*1e3)
-	return position
-
-def move_stages_to(x=None,y=None,z=None):
-	print(f'Moving to position {(x,y,z)}')
-	stages.move_to(x,y,z)
-	get_position()
-
-def jump_to_position_button_command():
-	pos = []
-	for coord in ['x','y','z']:
-		try:
-			pos.append(float(entries_coordinates[coord].get())*1e-3)
-		except:
-			tk.messagebox.showerror(message = f'Check your input in "{coord}". It must be a float but you have entered "{entries_coordinates[coord].get()}"')
-			return
-	move_stages_to(*tuple(pos))
-
-def single_movement_button_command(coordinate, direction):
-	try:
-		step = float(step_entry.get())*1e-6
-	except:
-		tk.messagebox.showerror(message = f'Check your input in "step". It must be a float but you have entered "{step_entry.get()}"')
-	print(f'Moving {step} µm in {direction}{coordinate}')
-	move = [0,0,0]
-	for idx,xyz in enumerate(['x','y','z']):
-		if coordinate==xyz:
-			move[idx] = step
-			if direction == '-':
-				move[idx] *= -1
-	move_stages_to(*tuple(np.array(get_position())+np.array(move)))
-
-jump_to_position_button['command'] = jump_to_position_button_command
-for xyz in ['x','y','z']:
-	for pm in ['-','+']:
-		single_movement_buttons[xyz][pm]['command'] = lambda coord=xyz,direction=pm: single_movement_button_command(coord,direction)
-
-get_position()
-root.mainloop()
+	root.mainloop()

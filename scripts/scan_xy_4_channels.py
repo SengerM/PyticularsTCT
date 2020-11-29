@@ -15,13 +15,13 @@ from bureaucrat import Bureaucrat
 
 # (0.021295419921875, 0.038191191406250005, 0.056478310546875)
 
-X_START = 21.206e-3
+X_START = 21.183e-3
 X_END = 21.382e-3
-Y_START = 38.093e-3
+Y_START = 38.06e-3
 Y_END = 38.282e-3
-N_STEPS = 33
+N_STEPS = 99
 Z_FOCUS = 0.05467107
-N_AVERAGE_TRIGGERS = 1
+N_AVERAGE_TRIGGERS = 55
 
 ############################################################
 
