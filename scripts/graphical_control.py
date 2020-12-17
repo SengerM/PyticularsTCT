@@ -120,15 +120,28 @@ class StagesJoystick(tk.Frame):
 		z_frame = tk.Frame(controls_frame)
 		xy_frame.grid(row=0,column=0)
 		z_frame.grid(row=0,column=1)
-		tk.Label(step_frame, text='Step (µm) = ').grid(row=0,column=0)
+		tk.Label(step_frame, text='xy step (µm) = ').grid(row=0,column=0)
+		tk.Label(step_frame, text='z step (µm) = ').grid(row=1,column=0)
 		
-		self.step_entry = tk.Entry(step_frame)
-		self.step_entry.grid(row=0,column=1)
-		self.step_entry.insert(0,'10')
-		self.step_entry.bind('<Left>', lambda x: self.move_command('x','-'))
-		self.step_entry.bind('<Right>', lambda x: self.move_command('x','+'))
-		self.step_entry.bind('<Up>', lambda x: self.move_command('y','-'))
-		self.step_entry.bind('<Down>', lambda x: self.move_command('y','+'))
+		self.xy_step_entry = tk.Entry(step_frame)
+		self.xy_step_entry.grid(row=0,column=1)
+		self.xy_step_entry.insert(0,'1')
+		self.xy_step_entry.bind('<Left>', lambda x: self.move_command('x','-'))
+		self.xy_step_entry.bind('<Right>', lambda x: self.move_command('x','+'))
+		self.xy_step_entry.bind('<Up>', lambda x: self.move_command('y','+'))
+		self.xy_step_entry.bind('<Down>', lambda x: self.move_command('y','-'))
+		self.xy_step_entry.bind('<Control_L>', lambda x: self.move_command('z','-'))
+		self.xy_step_entry.bind('<Shift_L>', lambda x: self.move_command('z','+'))
+		
+		self.z_step_entry = tk.Entry(step_frame)
+		self.z_step_entry.grid(row=1,column=1)
+		self.z_step_entry.insert(0,'100')
+		self.z_step_entry.bind('<Left>', lambda x: self.move_command('x','-'))
+		self.z_step_entry.bind('<Right>', lambda x: self.move_command('x','+'))
+		self.z_step_entry.bind('<Up>', lambda x: self.move_command('y','+'))
+		self.z_step_entry.bind('<Down>', lambda x: self.move_command('y','-'))
+		self.z_step_entry.bind('<Control_L>', lambda x: self.move_command('z','-'))
+		self.z_step_entry.bind('<Shift_L>', lambda x: self.move_command('z','+'))
 		
 		self.buttons = {}
 		for xyz in ['x', 'y', 'z']:
@@ -141,14 +154,14 @@ class StagesJoystick(tk.Frame):
 				self.buttons[xyz][direction]['command'] = lambda xyz=xyz,direction=direction: self.move_command(xyz,direction)
 		self.buttons['x']['-'].grid(row=1,column=0)
 		self.buttons['x']['+'].grid(row=1,column=2)
-		self.buttons['y']['-'].grid(row=0,column=1)
-		self.buttons['y']['+'].grid(row=2,column=1)
+		self.buttons['y']['+'].grid(row=0,column=1)
+		self.buttons['y']['-'].grid(row=2,column=1)
 		self.buttons['z']['-'].grid(row=0)
 		self.buttons['z']['+'].grid(row=1)
 	
 	def move_command(self, coordinate, direction):
 		try:
-			step = float(self.step_entry.get())*1e-6
+			step = float(self.xy_step_entry.get())*1e-6 if coordinate in ['x','y'] else float(self.z_step_entry.get())*1e-6
 		except:
 			tk.messagebox.showerror(message = f'Check your input in "step". It must be a float but you have entered "{self.step_entry.get()}"')
 			return
