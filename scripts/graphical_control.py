@@ -125,6 +125,10 @@ class StagesJoystick(tk.Frame):
 		self.step_entry = tk.Entry(step_frame)
 		self.step_entry.grid(row=0,column=1)
 		self.step_entry.insert(0,'10')
+		self.step_entry.bind('<Left>', lambda x: self.move_command('x','-'))
+		self.step_entry.bind('<Right>', lambda x: self.move_command('x','+'))
+		self.step_entry.bind('<Up>', lambda x: self.move_command('y','-'))
+		self.step_entry.bind('<Down>', lambda x: self.move_command('y','+'))
 		
 		self.buttons = {}
 		for xyz in ['x', 'y', 'z']:
