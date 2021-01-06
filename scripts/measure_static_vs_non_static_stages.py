@@ -113,8 +113,8 @@ if __name__ == '__main__':
 	print('Hello')
 	script_core(
 		measurement_name = input('Measurement name? ').replace(' ', '_'),
-		x_position = 21.23551e-3,
-		y_position = 37.37856e-3,
+		x_position = 21.27775e-3,
+		y_position = 37.37152e-3,
 		z_focus = 54.5e-3,
-		n_shots = 4444,
+		n_shots = 2222,
 	)
