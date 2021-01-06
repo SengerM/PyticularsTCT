@@ -41,6 +41,15 @@ def script_core(
 	
 	for nx,x_position in enumerate(np.linspace(x_start,x_end,n_steps)):
 		for ny,y_position in enumerate(np.linspace(y_start,y_end,n_steps)):
+			print('#############################')
+			print(f'nx, ny = {nx}, {ny}')
+			print(f'Moving stages to {(x_position,y_position)} m...')
+			stages.move_to(
+				x = x_position,
+				y = y_position,
+			)
+			print(f'Current position is {stages.position} m')
+			print(f'Saving position of stages in data files...')
 			ofpaths = {}
 			for ch in CHANNELS:
 				parent = Path(f'{bureaucrat.processed_data_dir_path}/{ch}')
@@ -50,16 +59,9 @@ def script_core(
 					print(f'# x_position = {stages.position[0]}', file = ofile)
 					print(f'# y_position = {stages.position[1]}', file = ofile)
 					print(f'# z_position = {stages.position[2]}', file = ofile)
-					print(f'# n_trigger\tAmplitude (V)\tNoise (V)\tRise time (s)\tCollected charge (a.u.)\tt_10 (s)\tt_50 (s)\tt_90 (s)', file = ofile)
-			print('#############################')
-			print(f'nx, ny = {nx}, {ny}')
-			print(f'Moving stages to {(x_position,y_position)} m...')
-			stages.move_to(
-				x = x_position,
-				y = y_position,
-			)
-			print(f'Current position is {stages.position} m')
-			print('Acquiring signals...')
+					print(f'# n_trigger\tAmplitude (V)\tNoise (V)\tRise time (s)\tCollected charge (a.u.)\tt_10 (s)\tt_50 (s)\tt_90 (s)\tTime over 20 % threshold (s)', file = ofile)
+			
+			print('Acquiring and processing signals...')
 			sleep(0.1)
 			for n in range(n_triggers):
 				raw_data = osc.acquire_one_pulse()
@@ -69,7 +71,10 @@ def script_core(
 						samples = raw_data[ch]['volt'],
 					)
 					with open(ofpaths[ch], 'a') as ofile:
-						print(f'{n}\t{s.amplitude}\t{s.noise}\t{s.risetime}\t{s.collected_charge()}\t{s.time_at(10)}\t{s.time_at(50)}\t{s.time_at(90)}', file = ofile)
+						try:
+							print(f'{n}\t{s.amplitude}\t{s.noise}\t{s.risetime}\t{s.collected_charge()}\t{s.time_at(10)}\t{s.time_at(50)}\t{s.time_at(90)}\t{s.time_over_threshold(20)}', file = ofile)
+						except:
+							print(f'Unable to parse at nx,ny = {nx},{ny} for {ch}, trigger number {n}, I will just continue.')
 					if np.random.rand() < 20/n_steps**2/n_triggers/4:
 						fig = mpl.manager.new(
 							title = f'Signal at {nx:05d}-{ny:05d} {ch} n_trigg={n}',
@@ -79,7 +84,7 @@ def script_core(
 							package = 'plotly',
 						)
 						s.plot_myplotlib(fig)
-						mpl.manager.save_all(mkdir=f'{bureaucrat.processed_data_dir_path}/raw_signals_plots')
+						mpl.manager.save_all(mkdir=f'{bureaucrat.processed_data_dir_path}/some_random_processed_signals_plots')
 						mpl.manager.delete_all_figs()
 				
 	print('Finished measuring! :)')
