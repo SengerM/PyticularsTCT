@@ -99,7 +99,7 @@ if __name__ == '__main__':
 		x_end = 21.30e-3,
 		y_start = 37.31e-3,
 		y_end = 37.44e-3,
-		n_steps = 33,
+		n_steps = 7,
 		z_focus = 54.5e-3,
 		n_triggers = 333,
 	)
