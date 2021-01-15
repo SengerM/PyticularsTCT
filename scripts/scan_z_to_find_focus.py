@@ -126,7 +126,7 @@ def plot_amplitudes():
 		label = 'Measured data',
 	)
 	
-	fig.save(f'{bureaucrat.measurement_path}/plot.pdf')
+	fig.save(f'{bureaucrat.processed_data_dir_path}/plot.pdf')
 	mpl.manager.show()
 
 if __name__ == '__main__':

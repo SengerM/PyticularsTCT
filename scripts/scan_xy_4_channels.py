@@ -91,12 +91,12 @@ if __name__ == '__main__':
 		print('Starting a new measurement...')
 		script_core(
 			measurement_name = measurement_names,
-			x_start = 21.15e-3,
-			x_end = 21.17e-3,
-			y_start = 37.31e-3,
-			y_end = 37.35e-3,
-			n_steps = 44,
-			z_focus = 54.5e-3,
+			x_start = 21.232617187499997e-3 - 500e-6,
+			x_end = 21.232617187499997e-3 + 500e-6,
+			y_start = 37.164013671875004e-3 - 500e-6,
+			y_end = 37.164013671875004e-3 + 500e-6,
+			n_steps = 111,
+			z_focus = 54.27e-3,
 			n_average_triggers = 5,
 		)
 		print('Parsing raw data...')

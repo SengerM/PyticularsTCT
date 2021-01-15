@@ -1,6 +1,5 @@
 from PyticularsTCT.oscilloscope import LecroyWR640Zi # https://github.com/SengerM/PyticularsTCT
 from PyticularsTCT.tct_setup import TCTStages # https://github.com/SengerM/PyticularsTCT
-from PyticularsTCT.utils import save_4ch_trigger # https://github.com/SengerM/PyticularsTCT
 import numpy as np
 from time import sleep
 import myplotlib as mpl
@@ -39,45 +38,62 @@ def script_core(
 		z = z_focus,
 	)
 	
+	ofile_path = bureaucrat.processed_data_dir_path/Path('measured_data.csv')
+	with open(ofile_path, 'w') as ofile:
+		print(f'n_x\tn_y\tn_trigger\tx (m)\ty(m)\tz (m)\tn_channel\tAmplitude (V)\tNoise (V)\tRise time (s)\tCollected charge (a.u.)\tt_10 (s)\tt_50 (s)\tt_90 (s)\tTime over 20 % threshold (s)', file = ofile)
+	
 	for nx,x_position in enumerate(np.linspace(x_start,x_end,n_steps)):
 		for ny,y_position in enumerate(np.linspace(y_start,y_end,n_steps)):
 			print('#############################')
 			print(f'nx, ny = {nx}, {ny}')
-			print(f'Moving stages to {(x_position,y_position)} m...')
 			stages.move_to(
 				x = x_position,
 				y = y_position,
 			)
-			print(f'Current position is {stages.position} m')
-			print(f'Saving position of stages in data files...')
-			ofpaths = {}
-			for ch in CHANNELS:
-				parent = Path(f'{bureaucrat.processed_data_dir_path}/{ch}')
-				parent.mkdir(exist_ok = True)
-				ofpaths[ch] = Path(f'{parent}/{nx:05d}-{ny:05d}.txt')
-				with open(ofpaths[ch], 'w') as ofile:
-					print(f'# x_position = {stages.position[0]}', file = ofile)
-					print(f'# y_position = {stages.position[1]}', file = ofile)
-					print(f'# z_position = {stages.position[2]}', file = ofile)
-					print(f'# n_trigger\tAmplitude (V)\tNoise (V)\tRise time (s)\tCollected charge (a.u.)\tt_10 (s)\tt_50 (s)\tt_90 (s)\tTime over 20 % threshold (s)', file = ofile)
-			
+			print(f'Current xyz position is {stages.position} m')
 			print('Acquiring and processing signals...')
 			sleep(0.1)
 			for n in range(n_triggers):
-				raw_data = osc.acquire_one_pulse()
-				for ch in CHANNELS:
+				position = stages.position
+				n_attempts = 0
+				success = [False]*len(CHANNELS)
+				while not all(success) and n_attempts < 5:
+					n_attempts += 1
+					raw_data = osc.acquire_one_pulse()
+					success = [False]*len(CHANNELS)
+					for idx,ch in enumerate(CHANNELS):
+						try: # Try to calculate all the quantities of interest.
+							s = LGADSignal(
+								time = raw_data[ch]['time'],
+								samples = raw_data[ch]['volt'],
+							)
+							s.amplitude
+							s.noise
+							s.risetime
+							s.collected_charge()
+							s.time_at(10)
+							s.time_at(50)
+							s.time_at(90)
+							s.time_over_threshold(20)
+						except:
+							print(f'Unable to parse at nx,ny = {nx},{ny} for {ch}, trigger number {n}, I will try {5-n_attempts} times more.')
+							break
+						else:
+							success[idx] = True
+				if not all(success): 
+					print(f'Unable to save data at nx,ny = {nx},{ny}, trigger number {n}. I will skip this point.')
+					continue
+				# If we are here it is because the data from all the triggers is good:
+				for idx,ch in enumerate(CHANNELS):
 					s = LGADSignal(
 						time = raw_data[ch]['time'],
 						samples = raw_data[ch]['volt'],
 					)
-					with open(ofpaths[ch], 'a') as ofile:
-						try:
-							print(f'{n}\t{s.amplitude}\t{s.noise}\t{s.risetime}\t{s.collected_charge()}\t{s.time_at(10)}\t{s.time_at(50)}\t{s.time_at(90)}\t{s.time_over_threshold(20)}', file = ofile)
-						except:
-							print(f'Unable to parse at nx,ny = {nx},{ny} for {ch}, trigger number {n}, I will just continue.')
+					with open(ofile_path, 'a') as ofile:
+						print(f'{nx}\t{ny}\t{n}\t{position[0]:.6e}\t{position[1]:.6e}\t{position[2]:.6e}\t{idx+1}\t{s.amplitude:.6e}\t{s.noise:.6e}\t{s.risetime:.6e}\t{s.collected_charge():.6e}\t{s.time_at(10):.6e}\t{s.time_at(50):.6e}\t{s.time_at(90):.6e}\t{s.time_over_threshold(20):.6e}', file = ofile)
 					if np.random.rand() < 20/n_steps**2/n_triggers/4:
 						fig = mpl.manager.new(
-							title = f'Signal at {nx:05d}-{ny:05d} {ch} n_trigg={n}',
+							title = f'Signal at {nx:05d}-{ny:05d}  n_trigg={n} {ch}',
 							subtitle = f'Measurement: {bureaucrat.measurement_name}',
 							xlabel = 'Time (s)',
 							ylabel = 'Amplitude (V)',
@@ -89,17 +105,17 @@ def script_core(
 				
 	print('Finished measuring! :)')
 
-############################################################
+########################################################################
 
 if __name__ == '__main__':
 	
 	script_core(
 		measurement_name = input('Measurement name? ').replace(' ', '_'),
-		x_start = 21.17e-3,
-		x_end = 21.30e-3,
-		y_start = 37.31e-3,
-		y_end = 37.44e-3,
-		n_steps = 7,
+		x_start = 21.18716e-3,
+		x_end = 21.25079e-3,
+		y_start = 37.15492e-3,
+		y_end = 37.22765e-3,
+		n_steps = 3,
 		z_focus = 54.5e-3,
-		n_triggers = 333,
+		n_triggers = 6,
 	)
