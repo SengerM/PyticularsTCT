@@ -40,7 +40,7 @@ def script_core(
 	
 	ofile_path = bureaucrat.processed_data_dir_path/Path('measured_data.csv')
 	with open(ofile_path, 'w') as ofile:
-		print(f'n_x\tn_y\tn_trigger\tx (m)\ty(m)\tz (m)\tn_channel\tAmplitude (V)\tNoise (V)\tRise time (s)\tCollected charge (a.u.)\tt_10 (s)\tt_50 (s)\tt_90 (s)\tTime over 20 % threshold (s)', file = ofile)
+		print(f'n_x\tn_y\tn_trigger\tx (m)\ty (m)\tz (m)\tn_channel\tAmplitude (V)\tNoise (V)\tRise time (s)\tCollected charge (a.u.)\tt_10 (s)\tt_50 (s)\tt_90 (s)\tTime over 20 % threshold (s)', file = ofile)
 	
 	for nx,x_position in enumerate(np.linspace(x_start,x_end,n_steps)):
 		for ny,y_position in enumerate(np.linspace(y_start,y_end,n_steps)):
@@ -109,13 +109,30 @@ def script_core(
 
 if __name__ == '__main__':
 	
+	X_START = 21.13607e-3
+	X_END = 21.3e-3
+	Y_START = 37.09193e-3
+	Y_END = 37.26648e-3
+	
+	STEP_SIZE = 5e-6
+	
+	n_steps = int(max([
+		(X_END-X_START)/STEP_SIZE,
+		(Y_END-Y_START)/STEP_SIZE,
+	]))
+	
+	if input(f'The number of steps is {n_steps}. Continue? yes/no ') != 'yes':
+		print('Exiting...')
+		exit()
+	
+	
 	script_core(
 		measurement_name = input('Measurement name? ').replace(' ', '_'),
-		x_start = 21.18716e-3,
-		x_end = 21.25079e-3,
-		y_start = 37.15492e-3,
-		y_end = 37.22765e-3,
-		n_steps = 3,
-		z_focus = 54.5e-3,
-		n_triggers = 6,
+		x_start = X_START,
+		x_end = X_END,
+		y_start = Y_START,
+		y_end = Y_END,
+		n_steps = n_steps,
+		z_focus = 54.54e-3,
+		n_triggers = 333,
 	)

@@ -14,8 +14,8 @@ from pathlib import Path
 ############################################################
 
 N_STEPS = 333
-X_POSITION = 21.15977e-3
-Y_POSITION = 37.32302e-3
+X_POSITION = 21.17807e-3
+Y_POSITION = 37.19128e-3
 Z_START = 49.3e-3
 Z_END = 58e-3
 N_AVERAGE_TRIGGERS = 11
