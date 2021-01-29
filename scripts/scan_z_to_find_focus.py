@@ -13,11 +13,11 @@ from pathlib import Path
 
 ############################################################
 
-N_STEPS = 333
-X_POSITION = 21.17807e-3
-Y_POSITION = 37.19128e-3
-Z_START = 49.3e-3
-Z_END = 58e-3
+N_STEPS = 222
+X_POSITION = -4.8591503906249995e-3
+Y_POSITION = -23.545966796875003e-3
+Z_START = 67.67748046874999e-3 - 5e-3
+Z_END = Z_START + 10e-3
 N_AVERAGE_TRIGGERS = 11
 
 ############################################################
