@@ -8,15 +8,13 @@ import myplotlib as mpl
 from PyticularsTCT.utils import save_tct_trigger, read_tct_trigger
 from lgadtools.LGADSignal import LGADSignal # https://github.com/SengerM/lgadtools
 import random
-from data_processing_bureaucrat.Bureaucrat import Bureaucrat # https://github.com/SengerM/data_processing_bureaucrat
+from data_processing_bureaucrat.Bureaucrat import Bureaucrat, TelegramProgressBar # https://github.com/SengerM/data_processing_bureaucrat
 from pathlib import Path
 
 ############################################################
 
 N_STEPS = 222
-X_POSITION = -4.8591503906249995e-3
-Y_POSITION = -23.545966796875003e-3
-Z_START = 67.67748046874999e-3 - 5e-3
+Z_START = 54.67998046875e-3 - 5e-3
 Z_END = Z_START + 10e-3
 N_AVERAGE_TRIGGERS = 11
 
@@ -35,51 +33,51 @@ def measure():
 	print('Moving to start position...')
 	stages.move_to(
 		z = Z_START,
-		x = X_POSITION,
-		y = Y_POSITION,
 	)
 	print(f'Current position is {stages.position} m')
 	print('Measuring...')
 	
-	for nz,z in enumerate(np.linspace(Z_START,Z_END,N_STEPS)):
-		print('#############################')
-		print(f'nz = {nz}')
-		stages.move_to(z=z)
-		print(f'Current position is {stages.position} m')
-		print('Acquiring signals...')
-		sleep(0.01)
-		osc.trig_mode = 'AUTO'
-		sleep(0.01)
-		osc.trig_mode = 'SINGLE'
-		data = osc.get_wf(CH=1)
-		averaged_signal = np.array(data['volt'])
-		for n_average in range(N_AVERAGE_TRIGGERS):
+	with TelegramProgressBar(len(np.linspace(Z_START,Z_END,N_STEPS)), bureaucrat) as pbar:
+		for nz,z in enumerate(np.linspace(Z_START,Z_END,N_STEPS)):
+			print('#############################')
+			print(f'nz = {nz}')
+			stages.move_to(z=z)
+			print(f'Current position is {stages.position} m')
+			print('Acquiring signals...')
+			sleep(0.01)
 			osc.trig_mode = 'AUTO'
 			sleep(0.01)
 			osc.trig_mode = 'SINGLE'
 			data = osc.get_wf(CH=1)
-			averaged_signal += np.array(data['volt'])
-		averaged_signal /= N_AVERAGE_TRIGGERS
-		
-		fname = f'{bureaucrat.raw_data_dir_path}/{nz:05d}.txt'.replace("/","\\")
-		print(f'Saving data in {fname}...')
-		save_tct_trigger(
-			fname = fname,
-			position = stages.position,
-			time = data['time'],
-			ch1 = averaged_signal,
-		)
-		temp_fig = mpl.manager.new(
-			title = f'Raw signal for nz={nz}',
-			xlabel = 'Time (s)',
-			ylabel = 'Amplitude (V)',
-		)
-		temp_fig.plot(
-			data['time'],
-			averaged_signal,
-		)
-		mpl.manager.save_all(mkdir=f'{bureaucrat.processed_data_dir_path}/raw_signals_plots')
-		mpl.manager.delete_all_figs()
+			averaged_signal = np.array(data['volt'])
+			for n_average in range(N_AVERAGE_TRIGGERS):
+				osc.trig_mode = 'AUTO'
+				sleep(0.01)
+				osc.trig_mode = 'SINGLE'
+				data = osc.get_wf(CH=1)
+				averaged_signal += np.array(data['volt'])
+			averaged_signal /= N_AVERAGE_TRIGGERS
+			
+			fname = f'{bureaucrat.raw_data_dir_path}/{nz:05d}.txt'.replace("/","\\")
+			print(f'Saving data in {fname}...')
+			save_tct_trigger(
+				fname = fname,
+				position = stages.position,
+				time = data['time'],
+				ch1 = averaged_signal,
+			)
+			temp_fig = mpl.manager.new(
+				title = f'Raw signal for nz={nz}',
+				xlabel = 'Time (s)',
+				ylabel = 'Amplitude (V)',
+			)
+			temp_fig.plot(
+				data['time'],
+				averaged_signal,
+			)
+			mpl.manager.save_all(mkdir=f'{bureaucrat.processed_data_dir_path}/raw_signals_plots')
+			mpl.manager.delete_all_figs()
+			pbar.update(1)
 			
 	print('Finished measuring! :)')
 
@@ -114,7 +112,7 @@ def plot_amplitudes():
 	amplitude = data[1]
 	mpl.manager.set_plotting_package('plotly')
 	fig = mpl.manager.new(
-		title = f'Focus find for PIN diode at x = {X_POSITION} and y = {Y_POSITION}',
+		title = f'Finding the focus',
 		xlabel = 'z position (m)',
 		ylabel = 'Amplitude (V)',
 		package = 'plotly',

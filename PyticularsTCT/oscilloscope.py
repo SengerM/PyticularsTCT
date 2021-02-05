@@ -1,5 +1,6 @@
 import pyvisa
 from time import sleep
+import numpy as np
 
 class LecroyWR640Zi:
 	def __init__(self, name):
@@ -39,7 +40,7 @@ class LecroyWR640Zi:
 				sample -= 255
 			volts.append(sample/25*vdiv - ofst)
 			times.append(tdiv*14/2+idx/sampling_rate)
-		return {'time': times, 'volt': volts}
+		return {'time': np.array(times), 'volt': np.array(volts)}
 
 	def acquire_one_pulse(self):
 		current_trigger = self.trig_mode
