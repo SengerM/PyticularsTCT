@@ -104,6 +104,6 @@ if __name__ == '__main__':
 	
 	script_core(
 		measurement_name = input('Measurement name? ').replace(' ', '_'),
-		laser_pulse_widths = [(665-i)/10 for i in range(16)], 
-		n_triggers = 4444,
+		laser_pulse_widths = [(665-i)/10 for i in range(15)], 
+		n_triggers = 5555,
 	)

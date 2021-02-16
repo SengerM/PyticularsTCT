@@ -14,7 +14,7 @@ from pathlib import Path
 ############################################################
 
 N_STEPS = 222
-Z_START = 54.67998046875e-3 - 5e-3
+Z_START = 54.360781249999995e-3 - 5e-3
 Z_END = Z_START + 10e-3
 N_AVERAGE_TRIGGERS = 11
 
