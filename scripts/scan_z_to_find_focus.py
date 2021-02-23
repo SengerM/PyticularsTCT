@@ -1,136 +1,124 @@
 from PyticularsTCT.oscilloscope import LecroyWR640Zi # https://github.com/SengerM/PyticularsTCT
 from PyticularsTCT.tct_setup import TCTStages # https://github.com/SengerM/PyticularsTCT
-from PyticularsTCT.utils import save_4ch_trigger # https://github.com/SengerM/PyticularsTCT
 import numpy as np
 from time import sleep
-import os
 import myplotlib as mpl
-from PyticularsTCT.utils import save_tct_trigger, read_tct_trigger
 from lgadtools.LGADSignal import LGADSignal # https://github.com/SengerM/lgadtools
-import random
-from data_processing_bureaucrat.Bureaucrat import Bureaucrat, TelegramProgressBar # https://github.com/SengerM/data_processing_bureaucrat
+from data_processing_bureaucrat.Bureaucrat import Bureaucrat, TelegramReportingInformation # https://github.com/SengerM/data_processing_bureaucrat
+from progressreporting.TelegramProgressReporter import TelegramProgressReporter as TReport # https://github.com/SengerM/progressreporting
 from pathlib import Path
+import pandas
 
-############################################################
+CHANNELS = ['CH1']
+TIMES_AT = []
 
-N_STEPS = 222
-Z_START = 54.360781249999995e-3 - 5e-3
-Z_END = Z_START + 10e-3
-N_AVERAGE_TRIGGERS = 11
-
-############################################################
-
-bureaucrat = Bureaucrat(
-	str(Path(f'C:/Users/tct_cms/Desktop/TCT_measurements_data/{input("Measurement name? ")}')),
-	variables = locals(),
-	new_measurement = True,
-)
-
-def measure():
+def script_core(measurement_name: str, n_steps: int, z_start: float, z_end: float, n_triggers: int = 1):
+	for var in [z_start, z_end]:
+		if var > 1: 
+			raise ValueError(f'Check the values of z_start and z_end. One of them is {var} which is more than one meter, this has to be wrong.')
+	bureaucrat = Bureaucrat(
+		str(Path(f'C:/Users/tct_cms/Desktop/TCT_measurements_data/{measurement_name}')),
+		variables = locals(),
+		new_measurement = True,
+	)
+	
 	osc = LecroyWR640Zi('USB0::0x05FF::0x1023::4751N40408::INSTR')
 	stages = TCTStages()
 
 	print('Moving to start position...')
-	stages.move_to(
-		z = Z_START,
-	)
-	print(f'Current position is {stages.position} m')
-	print('Measuring...')
+	stages.move_to(z = z_start)
 	
-	with TelegramProgressBar(len(np.linspace(Z_START,Z_END,N_STEPS)), bureaucrat) as pbar:
-		for nz,z in enumerate(np.linspace(Z_START,Z_END,N_STEPS)):
-			print('#############################')
-			print(f'nz = {nz}')
-			stages.move_to(z=z)
-			print(f'Current position is {stages.position} m')
-			print('Acquiring signals...')
-			sleep(0.01)
-			osc.trig_mode = 'AUTO'
-			sleep(0.01)
-			osc.trig_mode = 'SINGLE'
-			data = osc.get_wf(CH=1)
-			averaged_signal = np.array(data['volt'])
-			for n_average in range(N_AVERAGE_TRIGGERS):
-				osc.trig_mode = 'AUTO'
-				sleep(0.01)
-				osc.trig_mode = 'SINGLE'
-				data = osc.get_wf(CH=1)
-				averaged_signal += np.array(data['volt'])
-			averaged_signal /= N_AVERAGE_TRIGGERS
-			
-			fname = f'{bureaucrat.raw_data_dir_path}/{nz:05d}.txt'.replace("/","\\")
-			print(f'Saving data in {fname}...')
-			save_tct_trigger(
-				fname = fname,
-				position = stages.position,
-				time = data['time'],
-				ch1 = averaged_signal,
-			)
-			temp_fig = mpl.manager.new(
-				title = f'Raw signal for nz={nz}',
-				xlabel = 'Time (s)',
-				ylabel = 'Amplitude (V)',
-			)
-			temp_fig.plot(
-				data['time'],
-				averaged_signal,
-			)
-			mpl.manager.save_all(mkdir=f'{bureaucrat.processed_data_dir_path}/raw_signals_plots')
-			mpl.manager.delete_all_figs()
-			pbar.update(1)
-			
-	print('Finished measuring! :)')
-
-def parse_amplitudes():
-	print('Reading data...')
-	raw_data = []
-	for fname in sorted(os.listdir(bureaucrat.raw_data_dir_path)):
-		raw_data.append(read_tct_trigger(f'{bureaucrat.raw_data_dir_path}/{fname}'))
+	ofile_path = bureaucrat.processed_data_dir_path/Path('measured_data.csv')
+	with open(ofile_path, 'w') as ofile:
+		string = f'n_z\tn_trigger\tx (m)\ty (m)\tz (m)\tn_channel\tAmplitude (V)\tNoise (V)\tRise time (s)\tCollected charge (a.u.)\tTime over noise (s)'
+		for pp in TIMES_AT:
+			string += f'\tt_{pp} (s)'
+		print(string, file = ofile)
 	
-	print('Calculating amplitudes...')
-	amplitudes = []
-	zs = []
-	for data in raw_data:
-		zs.append(data['position'][2])
-		ch = list(data['volt'].keys())[0] # CH1, CH2, etc...
-		signal = LGADSignal(
-			time = data['time'],
-			samples = data['volt'][ch]*-1,
+	with TReport(total=n_steps*n_triggers+1, title=f'{bureaucrat.measurement_name}', telegram_token=TelegramReportingInformation().token, telegram_chat_id=TelegramReportingInformation().chat_id) as pbar:
+		with open(ofile_path, 'a') as ofile:
+			for nz,z_position in enumerate(np.linspace(z_start,z_end,n_steps)):
+				stages.move_to(z = z_position)
+				sleep(0.1)
+				for n in range(n_triggers):
+					print(f'Preparing to acquire signals at nz={nz}, n_trigger={n}...')
+					position = stages.position
+					raw_data = osc.acquire_one_pulse()
+					signals = {}
+					for idx,ch in enumerate(CHANNELS):
+						signals[ch] = LGADSignal(
+							time = raw_data[ch]['time'],
+							samples = raw_data[ch]['volt'],
+						)
+						string = f'{nz}\t{n}\t{position[0]:.6e}\t{position[1]:.6e}\t{position[2]:.6e}\t{idx+1}'
+						string += f'\t{signals[ch].amplitude:.6e}\t{signals[ch].noise:.6e}\t{signals[ch].rise_time:.6e}\t{signals[ch].collected_charge:.6e}\t{signals[ch].time_over_noise:.6e}'
+						for pp in TIMES_AT:
+							try:
+								string += f'\t{signals[ch].find_time_at_rising_edge(pp):.6e}'
+							except:
+								string += f'\t{float("NaN")}'
+						print(string, file = ofile)
+					if np.random.rand() < 20/n_steps**2/n_triggers:
+						for idx,ch in enumerate(CHANNELS):
+							fig = mpl.manager.new(
+								title = f'Signal at nz {nz:05d} n_trigg {n} {ch}',
+								subtitle = f'Measurement: {bureaucrat.measurement_name}',
+								xlabel = 'Time (s)',
+								ylabel = 'Amplitude (V)',
+								package = 'plotly',
+							)
+							signals[ch].plot_myplotlib(fig)
+							for pp in TIMES_AT:
+								try:
+									fig.plot(
+										[signals[ch].find_time_at_rising_edge(pp)],
+										[signals[ch].signal_at(signals[ch].find_time_at_rising_edge(pp))],
+										marker = 'x',
+										linestyle = '',
+										label = f'Time at {pp} %',
+										color = (0,0,0),
+									)
+								except:
+									pass
+							mpl.manager.save_all(mkdir=f'{bureaucrat.processed_data_dir_path}/some_random_processed_signals_plots')
+				pbar.update(n_triggers)
+		print('Finished measuring! :)')
+		
+		print('Making the plot...')
+		data = pandas.read_csv(
+			ofile_path,
+			delimiter = '\t',
 		)
-		amplitudes.append(signal.amplitude)
-	
-	fname = f'{bureaucrat.processed_data_dir_path}/amplitude_vs_z.txt'
-	print(f'Saving parsed data to file {fname}...')
-	with open(fname, 'w') as ofile:
-		print('#z (m)\tAmplitude (V)', file = ofile)
-		for z,A in zip(zs, amplitudes):
-			print(f'{z}\t{A}', file=ofile)
+		z_values = sorted(set(data['z (m)']))
+		mean_amplitude = []
+		for z in z_values:
+			mean_amplitude.append(np.nanmean(data[(data['z (m)']==z) & data['n_channel']==1]['Amplitude (V)']))
+		
+		fig = mpl.manager.new(
+			title = f'Finding the focus',
+			subtitle = f'Data set: {bureaucrat.measurement_name}',
+			xlabel = 'z (m)',
+			ylabel = 'Amplitude (V)',
+		)
+		fig.plot(
+			z_values,
+			mean_amplitude,
+			marker = '.',
+		)
+		mpl.manager.save_all(mkdir = bureaucrat.processed_data_dir_path)
+		pbar.update(1)
 
-def plot_amplitudes():
-	data = np.genfromtxt(f'{bureaucrat.processed_data_dir_path}/amplitude_vs_z.txt').transpose()
-	z = data[0]
-	amplitude = data[1]
-	mpl.manager.set_plotting_package('plotly')
-	fig = mpl.manager.new(
-		title = f'Finding the focus',
-		xlabel = 'z position (m)',
-		ylabel = 'Amplitude (V)',
-		package = 'plotly',
-	)
-	fig.plot(
-		z,
-		amplitude,
-		marker = '.',
-		label = 'Measured data',
-	)
-	
-	fig.save(f'{bureaucrat.processed_data_dir_path}/plot.pdf')
-	mpl.manager.show()
+########################################################################
 
 if __name__ == '__main__':
-	print('Measuring...')
-	measure()
-	print('Parsing amplitudes...')
-	parse_amplitudes()
-	print('Plotting amplitudes...')
-	plot_amplitudes()
+	
+	Z_START = 54.1791015625e-3 - 1e-2
+	Z_END = Z_START + 2e-2
+	
+	script_core(
+		measurement_name = input('Measurement name? ').replace(' ', '_'),
+		n_steps = 333,
+		z_start = Z_START,
+		z_end = Z_END,
+		n_triggers = 33,
+	)

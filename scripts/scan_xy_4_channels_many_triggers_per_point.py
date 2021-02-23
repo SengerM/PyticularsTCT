@@ -4,31 +4,12 @@ import numpy as np
 from time import sleep
 import myplotlib as mpl
 from lgadtools.LGADSignal import LGADSignal # https://github.com/SengerM/lgadtools
-from data_processing_bureaucrat.Bureaucrat import Bureaucrat, TelegramProgressBar # https://github.com/SengerM/data_processing_bureaucrat
+from data_processing_bureaucrat.Bureaucrat import Bureaucrat, TelegramReportingInformation # https://github.com/SengerM/data_processing_bureaucrat
+from progressreporting.TelegramProgressReporter import TelegramProgressReporter as TReport # https://github.com/SengerM/progressreporting
 from pathlib import Path
 
 CHANNELS = ['CH1', 'CH2', 'CH3', 'CH4']
-
-def acquire_nice_signals(osc, n_attempts=5, channels=CHANNELS):
-	n_attempts = int(n_attempts)
-	success = {}
-	for ch in channels:
-		success[ch] = False
-	while n_attempts > 0 and not all([success[ch] for ch in channels]):
-		n_attempts -= 1
-		for ch in channels: success[ch] = False
-		raw_data = osc.acquire_one_pulse()
-		signals = {}
-		for ch in channels:
-			signals[ch] = LGADSignal(
-				time = raw_data[ch]['time'],
-				samples = -1*raw_data[ch]['volt'],
-			)
-			success[ch] = signals[ch].worth
-	if all([success[ch] for ch in channels]):
-		return signals
-	else:
-		return None
+TIMES_AT = [10,20,30,40,50,60,70,80,90]
 
 def script_core(
 	measurement_name: str, 
@@ -61,42 +42,62 @@ def script_core(
 	
 	ofile_path = bureaucrat.processed_data_dir_path/Path('measured_data.csv')
 	with open(ofile_path, 'w') as ofile:
-		print(f'n_x\tn_y\tn_trigger\tx (m)\ty (m)\tz (m)\tn_channel\tAmplitude (V)\tNoise (V)\tRise time (s)\tCollected charge (a.u.)\tt_10 (s)\tt_50 (s)\tt_90 (s)\tTime over 20 % threshold (s)', file = ofile)
+		string = f'n_x\tn_y\tn_trigger\tx (m)\ty (m)\tz (m)\tn_channel\tAmplitude (V)\tNoise (V)\tRise time (s)\tCollected charge (a.u.)\tTime over noise (s)'
+		for pp in TIMES_AT:
+			string += f'\tt_{pp} (s)'
+		print(string, file = ofile)
 	
-	with TelegramProgressBar(n_steps**2*n_triggers, bureaucrat) as pbar:
-		for nx,x_position in enumerate(np.linspace(x_start,x_end,n_steps)):
-			for ny,y_position in enumerate(np.linspace(y_start,y_end,n_steps)):
-				stages.move_to(
-					x = x_position,
-					y = y_position,
-				)
-				sleep(0.1)
-				for n in range(n_triggers):
-					pbar.update(1)
-					position = stages.position
-					signals = acquire_nice_signals(osc, n_attempts = 1)
-					if signals is None:
-						continue
-					for idx,ch in enumerate(CHANNELS):
-						s = signals[ch]
-						with open(ofile_path, 'a') as ofile:
-							print(
-								f'{nx}\t{ny}\t{n}\t{position[0]:.6e}\t{position[1]:.6e}\t{position[2]:.6e}\t{idx+1}\t{s.amplitude:.6e}\t{s.noise:.6e}\t{s.risetime:.6e}\t{s.collected_charge():.6e}\t{s.time_at(10):.6e}\t{s.time_at(50):.6e}\t{s.time_at(90):.6e}\t{s.time_over_threshold(20):.6e}', 
-								file = ofile,
-							)
-					if np.random.rand() < 20/n_steps**2/n_triggers:
+	with TReport(total=n_steps**2*n_triggers, title=f'{bureaucrat.measurement_name}', telegram_token=TelegramReportingInformation().token, telegram_chat_id=TelegramReportingInformation().chat_id) as pbar:
+		with open(ofile_path, 'a') as ofile:
+			for nx,x_position in enumerate(np.linspace(x_start,x_end,n_steps)):
+				for ny,y_position in enumerate(np.linspace(y_start,y_end,n_steps)):
+					stages.move_to(
+						x = x_position,
+						y = y_position,
+					)
+					sleep(0.1)
+					for n in range(n_triggers):
+						print(f'Preparing to acquire signals at nx={nx}, ny={ny}, n_trigger={n}...')
+						position = stages.position
+						raw_data = osc.acquire_one_pulse()
+						signals = {}
 						for idx,ch in enumerate(CHANNELS):
-							fig = mpl.manager.new(
-								title = f'Signal at {nx:05d}-{ny:05d}  n_trigg={n} {ch}',
-								subtitle = f'Measurement: {bureaucrat.measurement_name}',
-								xlabel = 'Time (s)',
-								ylabel = 'Amplitude (V)',
-								package = 'plotly',
+							signals[ch] = LGADSignal(
+								time = raw_data[ch]['time'],
+								samples = raw_data[ch]['volt'],
 							)
-							signals[ch].plot_myplotlib(fig)
-							mpl.manager.save_all(mkdir=f'{bureaucrat.processed_data_dir_path}/some_random_processed_signals_plots')
-							mpl.manager.delete_all_figs()
-				
+							string = f'{nx}\t{ny}\t{n}\t{position[0]:.6e}\t{position[1]:.6e}\t{position[2]:.6e}\t{idx+1}'
+							string += f'\t{signals[ch].amplitude:.6e}\t{signals[ch].noise:.6e}\t{signals[ch].rise_time:.6e}\t{signals[ch].collected_charge:.6e}\t{signals[ch].time_over_noise:.6e}'
+							for pp in TIMES_AT:
+								try:
+									string += f'\t{signals[ch].find_time_at_rising_edge(pp):.6e}'
+								except:
+									string += f'\t{float("NaN")}'
+							print(string, file = ofile)
+						if np.random.rand() < 20/n_steps**2/n_triggers:
+							for idx,ch in enumerate(CHANNELS):
+								fig = mpl.manager.new(
+									title = f'Signal at {nx:05d}-{ny:05d} n_trigg {n} {ch}',
+									subtitle = f'Measurement: {bureaucrat.measurement_name}',
+									xlabel = 'Time (s)',
+									ylabel = 'Amplitude (V)',
+									package = 'plotly',
+								)
+								signals[ch].plot_myplotlib(fig)
+								for pp in TIMES_AT:
+									try:
+										fig.plot(
+											[signals[ch].find_time_at_rising_edge(pp)],
+											[signals[ch].signal_at(signals[ch].find_time_at_rising_edge(pp))],
+											marker = 'x',
+											linestyle = '',
+											label = f'Time at {pp} %',
+											color = (0,0,0),
+										)
+									except:
+										pass
+								mpl.manager.save_all(mkdir=f'{bureaucrat.processed_data_dir_path}/some_random_processed_signals_plots')
+					pbar.update(n_triggers)
 	print('Finished measuring! :)')
 
 ########################################################################
@@ -115,11 +116,6 @@ if __name__ == '__main__':
 		(Y_END-Y_START)/STEP_SIZE,
 	]))
 	
-	if input(f'The number of steps is {n_steps}. Continue? yes/no ') != 'yes':
-		print('Exiting...')
-		exit()
-	
-	
 	script_core(
 		measurement_name = input('Measurement name? ').replace(' ', '_'),
 		x_start = X_START,
@@ -127,6 +123,6 @@ if __name__ == '__main__':
 		y_start = Y_START,
 		y_end = Y_END,
 		n_steps = n_steps,
-		z_focus = 54.428e-3,
-		n_triggers = 33,
+		z_focus = 54.17911e-3,
+		n_triggers = 22,
 	)
