@@ -4,10 +4,12 @@ import numpy as np
 from time import sleep
 import myplotlib as mpl
 from lgadtools.LGADSignal import LGADSignal # https://github.com/SengerM/lgadtools
-from data_processing_bureaucrat.Bureaucrat import Bureaucrat, TelegramProgressBar # https://github.com/SengerM/data_processing_bureaucrat
+from data_processing_bureaucrat.Bureaucrat import Bureaucrat, TelegramReportingInformation # https://github.com/SengerM/data_processing_bureaucrat
+from progressreporting.TelegramProgressReporter import TelegramProgressReporter as TReport # https://github.com/SengerM/progressreporting
 from pathlib import Path
 
-CHANNELS = ['CH1']
+CHANNELS = ['CH1', 'CH2', 'CH3', 'CH4']
+TIMES_AT = [10,20,30,40,50,60,70,80,90]
 
 def script_core(
 	measurement_name: str, 
@@ -40,103 +42,86 @@ def script_core(
 	
 	ofile_path = bureaucrat.processed_data_dir_path/Path('measured_data.csv')
 	with open(ofile_path, 'w') as ofile:
-		print(f'n_step\tn_trigger\tx (m)\ty (m)\tz (m)\tn_channel\tAmplitude (V)\tNoise (V)\tRise time (s)\tCollected charge (a.u.)\tt_10 (s)\tt_50 (s)\tt_90 (s)\tTime over 20 % threshold (s)', file = ofile)
+		string = f'n_pos\tn_trigger\tx (m)\ty (m)\tz (m)\tn_channel\tAmplitude (V)\tNoise (V)\tRise time (s)\tCollected charge (a.u.)\tTime over noise (s)'
+		for pp in TIMES_AT:
+			string += f'\tt_{pp} (s)'
+		print(string, file = ofile)
 	
 	x_positions = np.linspace(x_start,x_end,n_steps)
 	y_positions = np.linspace(y_start,y_end,n_steps)
 	
-	with TelegramProgressBar(len(x_positions), bureaucrat) as progress_bar:
-		n_step = -1
-		for x_position,y_position in zip(x_positions,y_positions):
-			n_step += 1
-			progress_bar.update(1)
-			print('#############################')
-			print(f'n_step = {n_step}')
-			stages.move_to(
-				x = x_position,
-				y = y_position,
-			)
-			print(f'Current xyz position is {stages.position} m')
-			print('Acquiring and processing signals...')
-			sleep(0.1)
-			for n in range(n_triggers):
+	with TReport(
+		total = n_steps*n_triggers, 
+		loop_name = f'{bureaucrat.measurement_name}', 
+		telegram_token = TelegramReportingInformation().token, 
+		telegram_chat_id=TelegramReportingInformation().chat_id
+	) as pbar:
+		with open(ofile_path, 'a') as ofile:
+			for n_pos,xy_position in enumerate([(x,y) for x,y in zip(x_positions,y_positions)]):
+				stages.move_to(
+					x = xy_position[0],
+					y = xy_position[1],
+				)
+				sleep(0.1)
 				position = stages.position
-				n_attempts = 0
-				success = [False]*len(CHANNELS)
-				while not all(success) and n_attempts < 5:
-					n_attempts += 1
+				for n in range(n_triggers):
+					print(f'Preparing to acquire signals at n_pos={n_pos}, n_trigger={n}...')
 					raw_data = osc.acquire_one_pulse()
-					success = [False]*len(CHANNELS)
+					signals = {}
 					for idx,ch in enumerate(CHANNELS):
-						try: # Try to calculate all the quantities of interest.
-							s = LGADSignal(
-								time = raw_data[ch]['time'],
-								samples = raw_data[ch]['volt'],
-							)
-							s.amplitude
-							s.noise
-							s.risetime
-							s.collected_charge()
-							s.time_at(10)
-							s.time_at(50)
-							s.time_at(90)
-							s.time_over_threshold(20)
-						except Exception as exception:
-							print(f'Unable to parse at n_step = {n_step} for {ch}, trigger number {n}, I will try {5-n_attempts} times more.')
+						signals[ch] = LGADSignal(
+							time = raw_data[ch]['time'],
+							samples = raw_data[ch]['volt'],
+						)
+						string = f'{n_pos}\t{n}\t{position[0]:.6e}\t{position[1]:.6e}\t{position[2]:.6e}\t{idx+1}'
+						string += f'\t{signals[ch].amplitude:.6e}\t{signals[ch].noise:.6e}\t{signals[ch].rise_time:.6e}\t{signals[ch].collected_charge:.6e}\t{signals[ch].time_over_noise:.6e}'
+						for pp in TIMES_AT:
+							try:
+								string += f'\t{signals[ch].find_time_at_rising_edge(pp):.6e}'
+							except:
+								string += f'\t{float("NaN")}'
+						print(string, file = ofile)
+					if np.random.rand() < 20/n_steps/n_triggers:
+						for idx,ch in enumerate(CHANNELS):
 							fig = mpl.manager.new(
-								title = f'Unable to parse n_step={n_step} {ch} n_trigger={n}',
-								subtitle = bureaucrat.measurement_name,
+								title = f'Signal at {n_pos:05d} n_trigg {n} {ch}',
+								subtitle = f'Measurement: {bureaucrat.measurement_name}',
 								xlabel = 'Time (s)',
 								ylabel = 'Amplitude (V)',
-								package = 'matplotlib',
+								package = 'plotly',
 							)
-							fig.plot(
-								raw_data[ch]['time'],
-								raw_data[ch]['volt'],
-							)
-							mpl.manager.save_all(mkdir = bureaucrat.processed_data_dir_path/Path('unable to process plots'))
-							break
-						else:
-							success[idx] = True
-				if not all(success): 
-					print(f'Unable to save data at n_step = {n_step}, trigger number {n}. I will skip this point.')
-					continue
-				# If we are here it is because the data from all the triggers is good:
-				for idx,ch in enumerate(CHANNELS):
-					s = LGADSignal(
-						time = raw_data[ch]['time'],
-						samples = raw_data[ch]['volt'],
-					)
-					with open(ofile_path, 'a') as ofile:
-						print(f'{n_step}\t{n}\t{position[0]:.6e}\t{position[1]:.6e}\t{position[2]:.6e}\t{idx+1}\t{s.amplitude:.6e}\t{s.noise:.6e}\t{s.risetime:.6e}\t{s.collected_charge():.6e}\t{s.time_at(10):.6e}\t{s.time_at(50):.6e}\t{s.time_at(90):.6e}\t{s.time_over_threshold(20):.6e}', file = ofile)
-					if np.random.rand() < 20/n_steps/n_triggers/len(CHANNELS):
-						fig = mpl.manager.new(
-							title = f'Signal at n_step={n_step:05d}  n_trigg={n} {ch}',
-							subtitle = f'Measurement: {bureaucrat.measurement_name}',
-							xlabel = 'Time (s)',
-							ylabel = 'Amplitude (V)',
-							package = 'plotly',
-						)
-						s.plot_myplotlib(fig)
-						mpl.manager.save_all(mkdir=f'{bureaucrat.processed_data_dir_path}/some_random_processed_signals_plots')
-						mpl.manager.delete_all_figs()
+							signals[ch].plot_myplotlib(fig)
+							for pp in TIMES_AT:
+								try:
+									fig.plot(
+										[signals[ch].find_time_at_rising_edge(pp)],
+										[signals[ch].signal_at(signals[ch].find_time_at_rising_edge(pp))],
+										marker = 'x',
+										linestyle = '',
+										label = f'Time at {pp} %',
+										color = (0,0,0),
+									)
+								except:
+									pass
+							mpl.manager.save_all(mkdir=f'{bureaucrat.processed_data_dir_path}/some_random_processed_signals_plots')
+					pbar.update(1)
 	print('Finished measuring! :)')
 
 ########################################################################
 
 if __name__ == '__main__':
 	
-	Y_START = -26.2865e-3
-	Y_STOP = -21.9760e-3
+	Y_START = 31.971933593750002e-3
+	Y_STOP = 32.20305664062501e-3
 	STEP_SIZE = 1e-6
 	
 	script_core(
 		measurement_name = input('Measurement name? ').replace(' ', '_'),
-		x_start = -4.8262e-3,
-		x_end = -4.8262e-3,
+		x_start = 26.164970703124997e-3,
+		x_end = 26.164970703124997e-3,
 		y_start = Y_START,
 		y_end = Y_STOP,
 		n_steps = int(((Y_STOP-Y_START)**2)**.5/STEP_SIZE),
-		z_focus = 67.6663e-3,
-		n_triggers = 33,
+		z_focus = 55.51563e-3,
+		n_triggers = 999,
 	)
