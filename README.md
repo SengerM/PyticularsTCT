@@ -78,3 +78,7 @@ plt.show()
 The X,Y,Z stages in the setup are controlled by [8SMC5-USB - Stepper & DC Motor Controller](http://www.standa.lt/products/catalog/motorised_positioners?item=525). The programming interface is descripted [here](https://doc.xisupport.com/en/8smc5-usb/8SMCn-USB/Programming.html). In the "comunity examples" section of the previous link I found [this repository](https://github.com/Negrebetskiy/Attenuator) which I took as stargint point to write PyticularsTCT.
 
 In [this link](https://libximc.xisupport.com/doc-en/index.html) there is documentation about *libximc*.
+
+### Connecting to the osciloscopes from Linux
+
+It is not plug and play but it can be done. In case ```pyvisa``` is not listing the USB resources, see [here](https://stackoverflow.com/questions/66480203/pyvisa-not-listing-usb-instrument-on-linux/66480539#66480539).
