@@ -35,7 +35,7 @@ def script_core(measurement_name: str, n_steps: int, z_start: float, z_end: floa
 			string += f'\tt_{pp} (s)'
 		print(string, file = ofile)
 	
-	with TReport(total=n_steps*n_triggers+1, title=f'{bureaucrat.measurement_name}', telegram_token=TelegramReportingInformation().token, telegram_chat_id=TelegramReportingInformation().chat_id) as pbar:
+	with TReport(total=n_steps*n_triggers+1, loop_name=f'{bureaucrat.measurement_name}', telegram_token=TelegramReportingInformation().token, telegram_chat_id=TelegramReportingInformation().chat_id) as pbar:
 		with open(ofile_path, 'a') as ofile:
 			for nz,z_position in enumerate(np.linspace(z_start,z_end,n_steps)):
 				stages.move_to(z = z_position)
@@ -58,7 +58,7 @@ def script_core(measurement_name: str, n_steps: int, z_start: float, z_end: floa
 							except:
 								string += f'\t{float("NaN")}'
 						print(string, file = ofile)
-					if np.random.rand() < 20/n_steps**2/n_triggers:
+					if np.random.rand() < 20/n_steps/n_triggers:
 						for idx,ch in enumerate(CHANNELS):
 							fig = mpl.manager.new(
 								title = f'Signal at nz {nz:05d} n_trigg {n} {ch}',
@@ -112,13 +112,13 @@ def script_core(measurement_name: str, n_steps: int, z_start: float, z_end: floa
 
 if __name__ == '__main__':
 	
-	Z_START = 54.1791015625e-3 - 1e-2
-	Z_END = Z_START + 2e-2
+	Z_START = 55.616640624999995e-3 - 1111e-6
+	Z_END = Z_START + 2*1111e-6
 	
 	script_core(
 		measurement_name = input('Measurement name? ').replace(' ', '_'),
-		n_steps = 333,
+		n_steps = 111,
 		z_start = Z_START,
 		z_end = Z_END,
-		n_triggers = 33,
+		n_triggers = 6,
 	)
