@@ -47,7 +47,7 @@ def script_core(
 			string += f'\tt_{pp} (s)'
 		print(string, file = ofile)
 	
-	with TReport(total=n_steps**2*n_triggers, title=f'{bureaucrat.measurement_name}', telegram_token=TelegramReportingInformation().token, telegram_chat_id=TelegramReportingInformation().chat_id) as pbar:
+	with TReport(total=n_steps**2*n_triggers, loop_name=f'{bureaucrat.measurement_name}', telegram_token=TelegramReportingInformation().token, telegram_chat_id=TelegramReportingInformation().chat_id) as pbar:
 		with open(ofile_path, 'a') as ofile:
 			for nx,x_position in enumerate(np.linspace(x_start,x_end,n_steps)):
 				for ny,y_position in enumerate(np.linspace(y_start,y_end,n_steps)):
@@ -97,19 +97,19 @@ def script_core(
 									except:
 										pass
 								mpl.manager.save_all(mkdir=f'{bureaucrat.processed_data_dir_path}/some_random_processed_signals_plots')
-					pbar.update(n_triggers)
+						pbar.update(1)
 	print('Finished measuring! :)')
 
 ########################################################################
 
 if __name__ == '__main__':
 	
-	X_START = 21.13607e-3
-	X_END = 21.3e-3
-	Y_START = 37.09193e-3
-	Y_END = 37.26648e-3
+	X_START = 26.223037109375e-3 - 200e-6
+	X_END = X_START + 400e-6
+	Y_START = 32.056474609375e-3 - 200e-6
+	Y_END = Y_START + 400e-6
 	
-	STEP_SIZE = 5e-6
+	STEP_SIZE = 11e-6
 	
 	n_steps = int(max([
 		(X_END-X_START)/STEP_SIZE,
@@ -123,6 +123,6 @@ if __name__ == '__main__':
 		y_start = Y_START,
 		y_end = Y_END,
 		n_steps = n_steps,
-		z_focus = 54.17911e-3,
-		n_triggers = 22,
+		z_focus = 55.61665e-3,
+		n_triggers = 1,
 	)
