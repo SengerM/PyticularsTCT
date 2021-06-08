@@ -96,7 +96,7 @@ def script_core(
 										)
 									except:
 										pass
-								mpl.manager.save_all(mkdir=f'{bureaucrat.processed_data_dir_path}/some_random_processed_signals_plots')
+								mpl.manager.save_all(mkdir=Path(f'{bureaucrat.processed_data_dir_path}/some_random_processed_signals_plots'))
 						pbar.update(1)
 	print('Finished measuring! :)')
 
