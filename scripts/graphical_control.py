@@ -140,8 +140,8 @@ class StagesJoystick(tk.Frame):
 		self.z_step_entry.bind('<Right>', lambda x: self.move_command('x','+'))
 		self.z_step_entry.bind('<Up>', lambda x: self.move_command('y','+'))
 		self.z_step_entry.bind('<Down>', lambda x: self.move_command('y','-'))
-		self.z_step_entry.bind('<Control_L>', lambda x: self.move_command('z','-'))
-		self.z_step_entry.bind('<Shift_L>', lambda x: self.move_command('z','+'))
+		self.z_step_entry.bind('<Control_R>', lambda x: self.move_command('z','-'))
+		self.z_step_entry.bind('<Shift_R>', lambda x: self.move_command('z','+'))
 		
 		self.buttons = {}
 		for xyz in ['x', 'y', 'z']:
