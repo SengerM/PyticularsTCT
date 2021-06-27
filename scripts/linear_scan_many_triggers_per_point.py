@@ -103,7 +103,7 @@ def script_core(
 									)
 								except:
 									pass
-							mpl.manager.save_all(mkdir=Path(f'{bureaucrat.processed_data_dir_path}/some_random_processed_signals_plots'))
+							mpl.manager.save_all(mkdir=bureaucrat.processed_data_dir_path/Path('some_random_processed_signals_plots'))
 					pbar.update(1)
 	print('Finished measuring! :)')
 
@@ -111,17 +111,18 @@ def script_core(
 
 if __name__ == '__main__':
 	
-	Y_START = 31.971933593750002e-3
-	Y_STOP = 32.20305664062501e-3
-	STEP_SIZE = 1e-6
+	Y_START = 27.81227e-3
+	Y_STOP = 28.08655e-3
+	X_FIXED = 26.145488281249996e-3
+	STEP_SIZE = 11e-6
 	
 	script_core(
 		measurement_name = input('Measurement name? ').replace(' ', '_'),
-		x_start = 26.164970703124997e-3,
-		x_end = 26.164970703124997e-3,
+		x_start = X_FIXED,
+		x_end = X_FIXED,
 		y_start = Y_START,
 		y_end = Y_STOP,
 		n_steps = int(((Y_STOP-Y_START)**2)**.5/STEP_SIZE),
-		z_focus = 55.51563e-3,
-		n_triggers = 999,
+		z_focus = 55.61664e-3,
+		n_triggers = 3333,
 	)

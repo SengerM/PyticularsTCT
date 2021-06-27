@@ -75,17 +75,17 @@ def script_core(
 									string += f'\t{float("NaN")}'
 							print(string, file = ofile)
 						if np.random.rand() < 20/n_steps**2/n_triggers:
-							for idx,ch in enumerate(CHANNELS):
-								fig = mpl.manager.new(
-									title = f'Signal at {nx:05d}-{ny:05d} n_trigg {n} {ch}',
-									subtitle = f'Measurement: {bureaucrat.measurement_name}',
-									xlabel = 'Time (s)',
-									ylabel = 'Amplitude (V)',
-									package = 'plotly',
-								)
-								signals[ch].plot_myplotlib(fig)
-								for pp in TIMES_AT:
-									try:
+							try:
+								for idx,ch in enumerate(CHANNELS):
+									fig = mpl.manager.new(
+										title = f'Signal at {nx:05d}-{ny:05d} n_trigg {n} {ch}',
+										subtitle = f'Measurement: {bureaucrat.measurement_name}',
+										xlabel = 'Time (s)',
+										ylabel = 'Amplitude (V)',
+										package = 'plotly',
+									)
+									signals[ch].plot_myplotlib(fig)
+									for pp in TIMES_AT:
 										fig.plot(
 											[signals[ch].find_time_at_rising_edge(pp)],
 											[signals[ch].signal_at(signals[ch].find_time_at_rising_edge(pp))],
@@ -94,9 +94,9 @@ def script_core(
 											label = f'Time at {pp} %',
 											color = (0,0,0),
 										)
-									except:
-										pass
-								mpl.manager.save_all(mkdir=Path(f'{bureaucrat.processed_data_dir_path}/some_random_processed_signals_plots'))
+									mpl.manager.save_all(mkdir=Path(f'{bureaucrat.processed_data_dir_path}/some_random_processed_signals_plots'))
+							except:
+								pass
 						pbar.update(1)
 	print('Finished measuring! :)')
 
@@ -104,10 +104,10 @@ def script_core(
 
 if __name__ == '__main__':
 	
-	X_START = 26.223037109375e-3 - 200e-6
-	X_END = X_START + 400e-6
-	Y_START = 32.056474609375e-3 - 200e-6
-	Y_END = Y_START + 400e-6
+	X_START = 26.211679687499995e-3 - 300e-6
+	X_END = X_START + 600e-6
+	Y_START = 32.0440625e-3 - 300e-6
+	Y_END = Y_START + 600e-6
 	
 	STEP_SIZE = 11e-6
 	
@@ -124,5 +124,5 @@ if __name__ == '__main__':
 		y_end = Y_END,
 		n_steps = n_steps,
 		z_focus = 55.61665e-3,
-		n_triggers = 1,
+		n_triggers = 999,
 	)
