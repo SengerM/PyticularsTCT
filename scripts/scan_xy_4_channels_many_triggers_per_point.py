@@ -7,6 +7,8 @@ from lgadtools.LGADSignal import LGADSignal # https://github.com/SengerM/lgadtoo
 from data_processing_bureaucrat.Bureaucrat import Bureaucrat, TelegramReportingInformation # https://github.com/SengerM/data_processing_bureaucrat
 from progressreporting.TelegramProgressReporter import TelegramProgressReporter as TReport # https://github.com/SengerM/progressreporting
 from pathlib import Path
+import pandas
+from pyvisa.errors import VisaIOError
 
 CHANNELS = ['CH1', 'CH2', 'CH3', 'CH4']
 TIMES_AT = [10,20,30,40,50,60,70,80,90]
@@ -59,7 +61,14 @@ def script_core(
 					for n in range(n_triggers):
 						print(f'Preparing to acquire signals at nx={nx}, ny={ny}, n_trigger={n}...')
 						position = stages.position
-						raw_data = osc.acquire_one_pulse()
+						success_reading_oscilloscope = False
+						while not success_reading_oscilloscope:
+							try:
+								raw_data = osc.acquire_one_pulse()
+							except VisaIOError:
+								pbar.warn('Oscilloscope is not responding and the "Timeout expired before operation completed" error was raised.')
+							else:
+								success_reading_oscilloscope = True
 						signals = {}
 						for idx,ch in enumerate(CHANNELS):
 							signals[ch] = LGADSignal(
@@ -99,15 +108,19 @@ def script_core(
 								pass
 						pbar.update(1)
 	print('Finished measuring! :)')
+	
+	print('Converting CSV to feather...')
+	pandas.read_csv(ofile_path,sep='\t').reset_index(drop=True).to_feather(ofile_path.with_suffix('.fd'))
+	ofile_path.unlink() # Delete the CSV
 
 ########################################################################
 
 if __name__ == '__main__':
 	
-	X_START = 26.211679687499995e-3 - 300e-6
-	X_END = X_START + 600e-6
-	Y_START = 32.0440625e-3 - 300e-6
-	Y_END = Y_START + 600e-6
+	X_START = 25.89311e-3
+	X_END = 26.40254e-3
+	Y_START = 31.8160e-3
+	Y_END = 32.29155e-3 + 33e-6
 	
 	STEP_SIZE = 11e-6
 	
@@ -123,6 +136,6 @@ if __name__ == '__main__':
 		y_start = Y_START,
 		y_end = Y_END,
 		n_steps = n_steps,
-		z_focus = 55.61665e-3,
+		z_focus = 55.57624e-3,
 		n_triggers = 999,
 	)
