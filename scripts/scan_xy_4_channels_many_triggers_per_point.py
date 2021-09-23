@@ -5,10 +5,11 @@ from time import sleep
 import myplotlib as mpl
 from lgadtools.LGADSignal import LGADSignal # https://github.com/SengerM/lgadtools
 from data_processing_bureaucrat.Bureaucrat import Bureaucrat, TelegramReportingInformation # https://github.com/SengerM/data_processing_bureaucrat
-from progressreporting.TelegramProgressReporter import TelegramProgressReporter as TReport # https://github.com/SengerM/progressreporting
+from progressreporting.TelegramProgressReporter import TelegramReporter # https://github.com/SengerM/progressreporting
 from pathlib import Path
 import pandas
 from pyvisa.errors import VisaIOError
+from plotting_scripts.plot_everything_from_xy_scan import script_core as plot_everything_from_xy_scan
 
 CHANNELS = ['CH1', 'CH2', 'CH3', 'CH4']
 TIMES_AT = [10,20,30,40,50,60,70,80,90]
@@ -49,7 +50,11 @@ def script_core(
 			string += f'\tt_{pp} (s)'
 		print(string, file = ofile)
 	
-	with TReport(total=n_steps**2*n_triggers, loop_name=f'{bureaucrat.measurement_name}', telegram_token=TelegramReportingInformation().token, telegram_chat_id=TelegramReportingInformation().chat_id) as pbar:
+	reporter = TelegramReporter(
+		telegram_token = TelegramReportingInformation().token, 
+		telegram_chat_id = TelegramReportingInformation().chat_id,
+	)
+	with reporter.report_for_loop(n_steps**2*n_triggers, f'{bureaucrat.measurement_name}') as reporter:
 		with open(ofile_path, 'a') as ofile:
 			for nx,x_position in enumerate(np.linspace(x_start,x_end,n_steps)):
 				for ny,y_position in enumerate(np.linspace(y_start,y_end,n_steps)):
@@ -66,14 +71,14 @@ def script_core(
 							try:
 								raw_data = osc.acquire_one_pulse()
 							except VisaIOError:
-								pbar.warn('Oscilloscope is not responding and the "Timeout expired before operation completed" error was raised.')
+								reporter.warn('Oscilloscope is not responding and the "Timeout expired before operation completed" error was raised.')
 							else:
 								success_reading_oscilloscope = True
 						signals = {}
 						for idx,ch in enumerate(CHANNELS):
 							signals[ch] = LGADSignal(
 								time = raw_data[ch]['time'],
-								samples = raw_data[ch]['volt'],
+								samples = -1*raw_data[ch]['volt'],
 							)
 							string = f'{nx}\t{ny}\t{n}\t{position[0]:.6e}\t{position[1]:.6e}\t{position[2]:.6e}\t{idx+1}'
 							string += f'\t{signals[ch].amplitude:.6e}\t{signals[ch].noise:.6e}\t{signals[ch].rise_time:.6e}\t{signals[ch].collected_charge:.6e}\t{signals[ch].time_over_noise:.6e}'
@@ -106,21 +111,25 @@ def script_core(
 									mpl.manager.save_all(mkdir=Path(f'{bureaucrat.processed_data_dir_path}/some_random_processed_signals_plots'))
 							except:
 								pass
-						pbar.update(1)
+						reporter.update(1)
 	print('Finished measuring! :)')
 	
 	print('Converting CSV to feather...')
 	pandas.read_csv(ofile_path,sep='\t').reset_index(drop=True).to_feather(ofile_path.with_suffix('.fd'))
 	ofile_path.unlink() # Delete the CSV
+	
+	print('Doing plots...')
+	plot_everything_from_xy_scan(directory = bureaucrat.measurement_base_path)
+	print('Finished plotting!')
 
 ########################################################################
 
 if __name__ == '__main__':
 	
-	X_START = 25.89311e-3
-	X_END = 26.40254e-3
-	Y_START = 31.8160e-3
-	Y_END = 32.29155e-3 + 33e-6
+	X_START = 24.74658203125e-3 - 100e-6
+	X_END = X_START + 2*100e-6
+	Y_START = 29.775478515625e-3 - 100e-6
+	Y_END = Y_START + 2*100e-6
 	
 	STEP_SIZE = 11e-6
 	
@@ -136,6 +145,6 @@ if __name__ == '__main__':
 		y_start = Y_START,
 		y_end = Y_END,
 		n_steps = n_steps,
-		z_focus = 55.57624e-3,
-		n_triggers = 999,
+		z_focus = 53.26016601562499e-3,
+		n_triggers = 4,
 	)

@@ -5,8 +5,9 @@ from time import sleep
 import myplotlib as mpl
 from lgadtools.LGADSignal import LGADSignal # https://github.com/SengerM/lgadtools
 from data_processing_bureaucrat.Bureaucrat import Bureaucrat, TelegramReportingInformation # https://github.com/SengerM/data_processing_bureaucrat
-from progressreporting.TelegramProgressReporter import TelegramProgressReporter as TReport # https://github.com/SengerM/progressreporting
+from progressreporting.TelegramProgressReporter import TelegramReporter # https://github.com/SengerM/progressreporting
 from pathlib import Path
+from plotting_scripts.plot_everything_from_linear_scan import script_core as plot_everything_from_linear_scan
 
 CHANNELS = ['CH1', 'CH2', 'CH3', 'CH4']
 TIMES_AT = [10,20,30,40,50,60,70,80,90]
@@ -49,13 +50,11 @@ def script_core(
 	
 	x_positions = np.linspace(x_start,x_end,n_steps)
 	y_positions = np.linspace(y_start,y_end,n_steps)
-	
-	with TReport(
-		total = n_steps*n_triggers, 
-		loop_name = f'{bureaucrat.measurement_name}', 
+	reporter = TelegramReporter(
 		telegram_token = TelegramReportingInformation().token, 
-		telegram_chat_id=TelegramReportingInformation().chat_id
-	) as pbar:
+		telegram_chat_id = TelegramReportingInformation().chat_id,
+	)
+	with reporter.report_for_loop(n_steps*n_triggers, f'{bureaucrat.measurement_name}') as reporter:
 		with open(ofile_path, 'a') as ofile:
 			for n_pos,xy_position in enumerate([(x,y) for x,y in zip(x_positions,y_positions)]):
 				stages.move_to(
@@ -71,7 +70,7 @@ def script_core(
 					for idx,ch in enumerate(CHANNELS):
 						signals[ch] = LGADSignal(
 							time = raw_data[ch]['time'],
-							samples = raw_data[ch]['volt'],
+							samples = -1*raw_data[ch]['volt'],
 						)
 						string = f'{n_pos}\t{n}\t{position[0]:.6e}\t{position[1]:.6e}\t{position[2]:.6e}\t{idx+1}'
 						string += f'\t{signals[ch].amplitude:.6e}\t{signals[ch].noise:.6e}\t{signals[ch].rise_time:.6e}\t{signals[ch].collected_charge:.6e}\t{signals[ch].time_over_noise:.6e}'
@@ -104,17 +103,20 @@ def script_core(
 								except:
 									pass
 							mpl.manager.save_all(mkdir=bureaucrat.processed_data_dir_path/Path('some_random_processed_signals_plots'))
-					pbar.update(1)
+					reporter.update(1)
 	print('Finished measuring! :)')
+	print('Doing plots...')
+	plot_everything_from_linear_scan(directory = bureaucrat.measurement_base_path)
+	print('Finished plotting!')
 
 ########################################################################
 
 if __name__ == '__main__':
 	
-	Y_START = 27.81227e-3
-	Y_STOP = 28.08655e-3
-	X_FIXED = 26.145488281249996e-3
-	STEP_SIZE = 11e-6
+	Y_STOP = 29.87547e-3 + 11e-6
+	Y_START = 29.67548e-3
+	X_FIXED = (24.71717e-3+24.7054e-3)/2
+	STEP_SIZE = 1e-6
 	
 	script_core(
 		measurement_name = input('Measurement name? ').replace(' ', '_'),
@@ -123,6 +125,7 @@ if __name__ == '__main__':
 		y_start = Y_START,
 		y_end = Y_STOP,
 		n_steps = int(((Y_STOP-Y_START)**2)**.5/STEP_SIZE),
-		z_focus = 55.61664e-3,
+		z_focus = 53.26016601562499e-3,
 		n_triggers = 3333,
-	)
+		)
+
