@@ -1,0 +1,47 @@
+ObjSuf        = obj
+LibSuf 	      = lib
+SrcSuf        = cxx
+ExeSuf        = exe
+DllSuf        = dll
+OutPutOpt     = /out:
+ 
+# Win32 system with Microsoft Visual C/C++
+!include <win32.mak>
+
+CC            = $(cc)
+CXX           = $(cc)
+
+CXXFLAGS      = /EHsc /Ox /D "MSVC" /D "WIN32"
+
+LD            = $(link)
+LDFLAGS       = $(conlflags)
+SOFLAGS       = $(dlllflags)
+USBLIBS       = hidapi.lib USBM3.lib
+LIBS          = $(USBLIBS) 
+
+#------------------------------------------------------------------------------
+
+all:       PaLaser.exe
+ 
+PaLaser.exe: PaLaser.cxx PaLaser.obj 
+		$(LD) $(LDFLAGS) PaLaser.obj $(LIBS) $(OutPutOpt)PaLaser.exe
+
+clean:
+		del *.obj
+		del *Dict*.*
+		del *~
+
+###____________________________________________________________
+
+PaLaser.$(ObjSuf): PaLaser.$(SrcSuf) 
+
+.$(SrcSuf).$(ObjSuf):
+        $(CXX) $(CXXFLAGS) $(CXXDEBUG) -c $<
+ 
+
+
+
+
+
+
+
