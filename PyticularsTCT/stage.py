@@ -4,6 +4,8 @@ import time
 import ctypes
 import math
 import warnings
+from pathlib import Path
+import atexit
 
 if sys.version_info >= (3,0):
 	import urllib.parse
@@ -21,6 +23,9 @@ import pyximc
 
 ###########################################################
 
+
+TEMPORARY_FILES_PATH = Path(__file__).parent.resolve()
+
 def m2steps(m: float):
 	# Converts "meters" to "steps".
 	return math.floor(m*1e6/2.5), int((m*1e6/2.5-math.floor(m*1e6/2.5))*2**8)
@@ -37,6 +42,13 @@ class Stage:
 		if not isinstance(port, str):
 			raise TypeError('<port> must be a string (e.g. "COM3")')
 		self._dev_id = pyximc.lib.open_device(b'xi-com:\\\\.\\'+(bytes(port, 'utf8'))) # https://libximc.xisupport.com/doc-en/ximc_8h.html#a9027dc684f63de34956488bffe9e4b36
+		
+		temporary_file_to_indicate_that_this_stage_is_busy = TEMPORARY_FILES_PATH/Path(f'__stage_{port}_is_busy__')
+		if temporary_file_to_indicate_that_this_stage_is_busy.is_file():
+			raise RuntimeError(f'Cannot open stage in port {port} because it is already in use. If it is not in use, please manually delete the file {temporary_file_to_indicate_that_this_stage_is_busy}')
+		with open(temporary_file_to_indicate_that_this_stage_is_busy, 'w') as tempfile:
+			print('delete me', file=tempfile)
+		atexit.register(lambda: temporary_file_to_indicate_that_this_stage_is_busy.unlink()) # Delete the temporary file when this instance is destroyed.
 	
 	def __del__(self):
 		pyximc.lib.close_device(ctypes.byref(ctypes.c_int(self._dev_id)))
