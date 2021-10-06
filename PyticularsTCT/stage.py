@@ -6,6 +6,7 @@ import math
 import warnings
 from pathlib import Path
 import atexit
+import numpy as np
 
 if sys.version_info >= (3,0):
 	import urllib.parse
@@ -127,23 +128,30 @@ class Stage:
 	
 
 class TCTStages:
-	def __init__(self, x_stage_port='COM3', y_stage_port='COM4', z_stage_port='COM5'):
+	def __init__(self, x_stage_port='COM3', y_stage_port='COM4', z_stage_port='COM5', x_limits=[-51e-3, 51e-3], y_limits=[-1, 46e-3], z_limits=[-1,1]):
 		self.x_stage = Stage(port=x_stage_port)
 		self.y_stage = Stage(port=y_stage_port)
 		self.z_stage = Stage(port=z_stage_port)
 		self._stages = [self.x_stage, self.y_stage, self.z_stage]
+		self.coordinates_limits = {
+			'x': x_limits,
+			'y': y_limits,
+			'z': z_limits,
+		}
 	
 	def move_to(self, x=None, y=None, z=None):
-		for stage, pos in zip(self._stages, [x,y,z]):
+		for stage, pos, coord in zip(self._stages, [x,y,z], ['x','y','z']):
 			if pos == None:
 				continue
+			if not self.coordinates_limits[coord][0] < pos < self.coordinates_limits[coord][1]:
+				raise ValueError(f'Coordinate {repr(coord)} must be inside the range {self.coordinates_limits[coord]}, received {pos}.')
 			stage.move_to(pos,blocking=True)
 	
 	def move_rel(self, x=None, y=None, z=None):
-		for stage, dist in zip(self._stages, [x,y,z]):
-			if dist == None or dist == 0:
-				continue
-			stage.move_rel(dist,blocking=True)
+		movement_vector = [None]*3
+		for i, xyz in enumerate([x,y,z]):
+			movement_vector[i] = 0 if xyz is None else xyz
+		self.move_to(*list(np.array(self.position)+np.array(movement_vector)))
 	
 	@property
 	def position(self):
