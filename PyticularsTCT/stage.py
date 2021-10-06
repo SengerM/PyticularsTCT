@@ -295,8 +295,8 @@ if __name__ == '__main__':
 			self.xy_step_entry.bind('<Right>', lambda x: self.move_command('x','+'))
 			self.xy_step_entry.bind('<Up>', lambda x: self.move_command('y','+'))
 			self.xy_step_entry.bind('<Down>', lambda x: self.move_command('y','-'))
-			self.xy_step_entry.bind('<Control_L>', lambda x: self.move_command('z','-'))
-			self.xy_step_entry.bind('<Shift_L>', lambda x: self.move_command('z','+'))
+			self.xy_step_entry.bind('<Control_R>', lambda x: self.move_command('z','-'))
+			self.xy_step_entry.bind('<Shift_R>', lambda x: self.move_command('z','+'))
 			
 			self.z_step_entry = tk.Entry(step_frame)
 			self.z_step_entry.grid(row=1,column=1)
