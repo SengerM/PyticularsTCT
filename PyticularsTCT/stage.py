@@ -50,11 +50,12 @@ class Stage:
 		with open(temporary_file_to_indicate_that_this_stage_is_busy, 'w') as tempfile:
 			print('delete me', file=tempfile)
 		atexit.register(lambda: temporary_file_to_indicate_that_this_stage_is_busy.unlink()) # Delete the temporary file when this instance is destroyed.
-	
+		
 	def __del__(self):
 		pyximc.lib.close_device(ctypes.byref(ctypes.c_int(self._dev_id)))
 	
 	def reset_position(self):
+		"""Resets the coordinates. This makes the stage to travel to the end, it does some stuff, and then it goes back to the middle where the 0 position is defined. This is useful because sometimes, for some reason, the stages change their coordinate origin. Dont ask me why..."""
 		pyximc.lib.command_homezero(self._dev_id)
 	
 	def _move_to(self, steps: int, usteps: int, blocking: bool):
@@ -84,12 +85,16 @@ class Stage:
 	def move_to(self, m, blocking=True):
 		# Move to <m> position, where <m> is in meters.
 		# If <blocking> is True, the execution of the program is blocked until the moving operation is completed, else the execution of the program continues while the stage is moving.
+		if not (isinstance(m, float) or isinstance(m, int)):
+			raise ValueError(f'Position must be a float number, received object of type {type(m)}.')
 		steps, usteps = m2steps(m)
 		self._move_to(steps, usteps, blocking = blocking)
 	
 	def move_rel(self, m, blocking=True):
 		# Move relative <m> meters.
 		# If <blocking> is True, the execution of the program is blocked until the moving operation is completed, else the execution of the program continues while the stage is moving.
+		if not (isinstance(m, float) or isinstance(m, int)):
+			raise ValueError(f'Position must be a float number, received object of type {type(m)}.')
 		steps, usteps = m2steps(m)
 		if steps == usteps == 0:
 			warnings.warn(f'I was told to move the stage in <m>={m} meters (relative to its current position) and this is less than the minimum step of the stage, thus it will not be moved.')
@@ -128,7 +133,8 @@ class Stage:
 	
 
 class TCTStages:
-	def __init__(self, x_stage_port='COM3', y_stage_port='COM4', z_stage_port='COM5', x_limits=[-51e-3, 51e-3], y_limits=[-1, 46e-3], z_limits=[-1,1]):
+	def __init__(self, x_stage_port='COM3', y_stage_port='COM4', z_stage_port='COM5', x_limits=[-50e-3, 50e-3], y_limits=[-50e-3, 50e-3], z_limits=[0,90e-3]):
+		# The default values for the limits were found after using the "Stage.reset_position" method. With these numbers there should be no problems.
 		self.x_stage = Stage(port=x_stage_port)
 		self.y_stage = Stage(port=y_stage_port)
 		self.z_stage = Stage(port=z_stage_port)
