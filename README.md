@@ -14,6 +14,8 @@ This package was developed and tested only in our setup at UZH.
 
 Usage example:
 
+**`WARNING`** This example is outdated as I am going through a major update to make this cross platform.
+
 ```Python
 import PyticularsTCT
 import time
@@ -47,4 +49,23 @@ In [this link](https://libximc.xisupport.com/doc-en/index.html) there is documen
 
 ### About the laser
 
-The software to control the laser, which is propietary of Particulars I think, is only available for Windows. It was sent to me via email, but later I found it in [the Particulars website](http://particulars.si/support.php?sup=downloads.html), specifically clicking in "Microsoft Visual C++". Anyway, I included a copy in this repo so it is plug and play.
+I was able to implement a pure-Python driver for the laser, you can find it [here](PyticularsTCT/ParticularsLaserControl.py). Being pure-Python it should be cross platform (I have only tested it on Linux by now). If you want to use this module individually, here there is an example:
+```
+from PyticularsTCT.ParticularsLaserController import ParticularsLaserController
+from time import sleep
+
+laser = ParticularsLaserController() # Open connection to laser.
+laser.on() # This is equivalent to `laser.status = 'on'`.
+print(f'Current laser status is: {laser.status}') # This should print "on".
+for frequency in [50,100,1e3,10e3,100e3]:
+	for DAC in [0,222,444,666,888,1023]:
+		print(f'Setting f = {frequency} Hz, DAC = {DAC}...')
+		laser.frequency = frequency # Change the frequency.
+		laser.DAC = DAC # Change the DAC, from 0 to 1023.
+		print(f'Current frequency = {laser.frequency} Hz') # This prints the current frequency.
+		print(f'Current DAC = {laser.DAC}') # This prints the current DAC value.
+		sleep(.5)
+print('Will turn the laser off...')
+laser.off() # This is equivalent to `laser.status = 'off'`.
+print(f'Laser status is: {laser.status}')
+```
