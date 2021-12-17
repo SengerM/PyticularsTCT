@@ -1,4 +1,3 @@
-import os
 import sys
 import time
 import ctypes
@@ -7,18 +6,13 @@ import warnings
 from pathlib import Path
 import atexit
 import numpy as np
+import platform
 
 if sys.version_info >= (3,0):
 	import urllib.parse
 
-cur_dir = os.path.abspath(os.path.dirname(__file__))
-ximc_dir = os.path.join(cur_dir, "ximc")
-ximc_package_dir = os.path.join(ximc_dir, "crossplatform", "wrappers", "python")
-sys.path.append(ximc_package_dir)
-
-if sys.platform in ("win32", "win64"):
-	libdir = os.path.join(ximc_dir, sys.platform)
-	os.environ["Path"] = libdir + ";" + os.environ["Path"]
+pyximc_path = Path(__file__).parent/Path('ximc')
+sys.path.append(str(pyximc_path))
 
 import pyximc
 
@@ -41,10 +35,15 @@ class Stage:
 	"""
 	def __init__(self, port: str):
 		if not isinstance(port, str):
-			raise TypeError('<port> must be a string (e.g. "COM3")')
-		self._dev_id = pyximc.lib.open_device(b'xi-com:\\\\.\\'+(bytes(port, 'utf8'))) # https://libximc.xisupport.com/doc-en/ximc_8h.html#a9027dc684f63de34956488bffe9e4b36
+			raise TypeError('<port> must be a string (e.g. "COM3" in Windows or "/dev/ttyACM2" in Linux)')
+		def create_uri(port):
+			if platform.system() == 'Windows':
+				return b'xi-com:\\\\.\\'+(bytes(port, 'utf8'))
+			elif platform.system() in {'Linux','Darwin'}:
+				return b'xi-com:'+(bytes(port, 'utf8'))
+		self._dev_id = pyximc.lib.open_device(create_uri(port)) # https://libximc.xisupport.com/doc-en/ximc_8h.html#a9027dc684f63de34956488bffe9e4b36
 		
-		temporary_file_to_indicate_that_this_stage_is_busy = TEMPORARY_FILES_PATH/Path(f'__stage_{port}_is_busy__')
+		temporary_file_to_indicate_that_this_stage_is_busy = TEMPORARY_FILES_PATH/Path(f'__stage_{port.replace("/","_")}_is_busy__')
 		if temporary_file_to_indicate_that_this_stage_is_busy.is_file():
 			raise RuntimeError(f'Cannot open stage in port {port} because it is already in use. If it is not in use, please manually delete the file {temporary_file_to_indicate_that_this_stage_is_busy}')
 		with open(temporary_file_to_indicate_that_this_stage_is_busy, 'w') as tempfile:
@@ -131,9 +130,22 @@ class Stage:
 		pos = self.get_position()
 		return steps2m(pos['Position'], pos['uPosition'])
 	
+# The following default ports I found in the computers at our lab, don't know if they default to that in any computer.
+if platform.system() == 'Windows':
+	X_STAGE_DEFAULT_PORT = 'COM3'
+	Y_STAGE_DEFAULT_PORT = 'COM4'
+	Z_STAGE_DEFAULT_PORT = 'COM5'
+elif platform.system() == 'Linux':
+	X_STAGE_DEFAULT_PORT = '/dev/ttyACM1'
+	Y_STAGE_DEFAULT_PORT = '/dev/ttyACM2'
+	Z_STAGE_DEFAULT_PORT = '/dev/ttyACM0'
+else:
+	X_STAGE_DEFAULT_PORT = None
+	Y_STAGE_DEFAULT_PORT = None
+	Z_STAGE_DEFAULT_PORT = None
 
 class TCTStages:
-	def __init__(self, x_stage_port='COM3', y_stage_port='COM4', z_stage_port='COM5', x_limits=[-50e-3, 50e-3], y_limits=[-50e-3, 50e-3], z_limits=[0,90e-3]):
+	def __init__(self, x_stage_port=X_STAGE_DEFAULT_PORT, y_stage_port=Y_STAGE_DEFAULT_PORT, z_stage_port=Z_STAGE_DEFAULT_PORT, x_limits=[-50e-3, 50e-3], y_limits=[-50e-3, 50e-3], z_limits=[0,90e-3]):
 		# The default values for the limits were found after using the "Stage.reset_position" method. With these numbers there should be no problems.
 		self.x_stage = Stage(port=x_stage_port)
 		self.y_stage = Stage(port=y_stage_port)
