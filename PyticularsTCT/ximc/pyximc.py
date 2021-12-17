@@ -3,6 +3,13 @@ import platform
 from pathlib import Path
 import os
 
+# ----------------------------------------------------------------------
+# This file was adapted from the original one shipped with the ximc 
+# library, see http://files.xisupport.com/Software.en.html#development-kit.
+# The original script I took it from `libximc-2.13.3-all.tar.gz` in the
+# path `/ximc-2.13.3/ximc/crossplatform/wrappers/python/pyximc.py`.
+# My only modifications are here:
+
 def ximc_shared_lib():
 	this_file_path = Path(__file__)
 	if platform.system() == "Linux":
@@ -10,7 +17,7 @@ def ximc_shared_lib():
 		os.environ['LD_LIBRARY_PATH'] = str(path_to_ximc_binaries)
 		return CDLL(str(path_to_ximc_binaries/Path("libximc.so")))
 	elif platform.system() == "Darwin":
-		raise NotImplementedError(f'Not implemented for your operating system. However it should be very easy, have a look at https://doc.xisupport.com/en/8smc5-usb/8SMCn-USB/Programming/Programming_guide.html')
+		raise NotImplementedError(f'Not implemented for your operating system ({platform.system()}). However it should be very easy, have a look at the file {this_file_path.parent/Path("README.md")}.')
 	elif platform.system() == "Windows":
 		path_to_ximc_binaries = this_file_path.parent/Path('win64')
 		return WinDLL(str(path_to_ximc_binaries/Path('libximc.dll')))
@@ -18,6 +25,9 @@ def ximc_shared_lib():
 		return None
 
 lib = ximc_shared_lib()
+
+# ----------------------------------------------------------------------
+# From here on I did not modified anything, it is the original script.
 
 # Common declarations
 
