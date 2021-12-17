@@ -50,7 +50,8 @@ In [this link](https://libximc.xisupport.com/doc-en/index.html) there is documen
 ### About the laser
 
 I was able to implement a pure-Python driver for the laser, you can find it [here](PyticularsTCT/ParticularsLaserControl.py). Being pure-Python it should be cross platform (I have only tested it on Linux by now). If you want to use this module individually, here there is an example:
-```
+
+```Python
 from PyticularsTCT.ParticularsLaserController import ParticularsLaserController
 from time import sleep
 
