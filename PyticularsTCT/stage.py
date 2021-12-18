@@ -29,6 +29,22 @@ def steps2m(steps, usteps):
 	# Converts "steps" to "meters".
 	return steps*2.5*1e-6 + usteps*2.5*1e-6/2**8
 
+def default_stages_ports():
+	# The following default ports I found in the computers at our lab, don't know if they default to that in any computer.
+	if platform.system() == 'Windows':
+		X_STAGE_DEFAULT_PORT = 'COM3'
+		Y_STAGE_DEFAULT_PORT = 'COM4'
+		Z_STAGE_DEFAULT_PORT = 'COM5'
+	elif platform.system() == 'Linux':
+		X_STAGE_DEFAULT_PORT = '/dev/ttyACM2'
+		Y_STAGE_DEFAULT_PORT = '/dev/ttyACM1'
+		Z_STAGE_DEFAULT_PORT = '/dev/ttyACM0'
+	else:
+		X_STAGE_DEFAULT_PORT = None
+		Y_STAGE_DEFAULT_PORT = None
+		Z_STAGE_DEFAULT_PORT = None
+	return {'x': X_STAGE_DEFAULT_PORT, 'y': Y_STAGE_DEFAULT_PORT, 'z': Z_STAGE_DEFAULT_PORT}
+
 class Stage:
 	"""
 	https://libximc.xisupport.com/doc-en/index.html
@@ -347,8 +363,8 @@ if __name__ == '__main__':
 			new_pos = self.stages.position
 			print(f'Stages moved, new position is {new_pos}')
 			self.current_coordinates_display.set_coordinates(*new_pos)
-			
-	stages = TCTStages()
+	
+	stages = TCTStages(x_stage_port=default_stages_ports().get('x'), y_stage_port=default_stages_ports().get('y'), z_stage_port=default_stages_ports().get('z'))
 
 	root = tk.Tk()
 	root.title('Pyticulares stages control')
