@@ -6,6 +6,7 @@ import warnings
 from pathlib import Path
 import atexit
 import numpy as np
+import platform
 
 if sys.version_info >= (3,0):
 	import urllib.parse

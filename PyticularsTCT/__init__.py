@@ -19,4 +19,4 @@ else:
 class TCT:
 	def __init__(self, x_stage_port=X_STAGE_DEFAULT_PORT, y_stage_port=Y_STAGE_DEFAULT_PORT, z_stage_port=Z_STAGE_DEFAULT_PORT):
 		self.stages = TCTStages(x_stage_port, y_stage_port, z_stage_port)
-		self.laser = ParticularsLaserController(frequency=laser_frequency)
+		self.laser = ParticularsLaserController()
