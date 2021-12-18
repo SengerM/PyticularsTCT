@@ -163,6 +163,11 @@ class TCTStages:
 	def position(self):
 		"""Return the current position of the stages in meters as a tuple of the form (x,y,z)."""
 		return tuple([stage.position for stage in self._stages])
+	
+	def reset_position(self):
+		"""Reset the position of all the stages. WARNING: This will move one by one each stage to the border and then will go to the 0 position."""
+		for stage in [self.x_stage, self.y_stage, self.z_stage]:
+			stage.reset_position()
 
 if __name__ == '__main__':
 	# This is a simple graphical interface to control the stages ---
