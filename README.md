@@ -41,11 +41,32 @@ tct.stages.move_to(*current_position) # Go back to original position.
 
 ## More info
 
-### About the stages
+### About the motorized stages
 
-The X,Y,Z stages in the setup are controlled by [8SMC5-USB - Stepper & DC Motor Controller](http://www.standa.lt/products/catalog/motorised_positioners?item=525). The programming interface is descripted [here](https://doc.xisupport.com/en/8smc5-usb/8SMCn-USB/Programming.html). In the "comunity examples" section of the previous link I found [this repository](https://github.com/Negrebetskiy/Attenuator) which I took as stargint point to write PyticularsTCT.
+The X,Y,Z stages in the setup are controlled by [8SMC5-USB - Stepper & DC Motor Controller](http://www.standa.lt/products/catalog/motorised_positioners?item=525) units. The programming interface is descripted [here](https://doc.xisupport.com/en/8smc5-usb/8SMCn-USB/Programming.html). *PyticularsTCT* is shipped with a hardcoded copy of the binaries for some operating systems together with a slightly modified version of the Python script that is provided by the original author of the *ximc library* (see [PyticularsTCT/ximc](ximc)) in such a way that the control of the motors becomes trivial, i.e. just `pip install blablabla` and it is working.
 
-In [this link](https://libximc.xisupport.com/doc-en/index.html) there is documentation about *libximc*.
+If you want control only the motors as a standalone package here there is an example:
+```Python
+from PyticularsTCT.stage import TCTStages
+
+stages = TCTStages(
+	z_stage_port = '/dev/ttyACM0', # To know what to write here, if you are in Linux https://unix.stackexchange.com/a/144735/317682, in Windows it is 'COM1' and so.
+	x_stage_port = '/dev/ttyACM1', 
+	y_stage_port = '/dev/ttyACM2',
+)
+
+print(stages.position) # Print (x,y,z) position.
+stages.move_rel(z = 1e-2) # Move z in 1 centimiter.
+print(stages.position)
+stages.move_rel(z = -1e-2) # Move z in -1 centimiter.
+print(stages.position) # Position should be the initial position.
+stages.move_rel(x = 1e-6, y = 1e-6) # Move 1 µm both in x and y.
+current_position = stages.position
+stages.move_to(0,0,0) # Move to x=y=z=0.
+print(stages.position)
+stages.move_to(*current_position) # Go back to previous position.
+```
+If, for some very weird reason, you want to control each of the motorized stages individually it is also possible, have a look at [the source code of `stage.py`](PyticularsTCT/stage.py).
 
 ### About the laser
 

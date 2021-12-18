@@ -6,7 +6,6 @@ import warnings
 from pathlib import Path
 import atexit
 import numpy as np
-import platform
 
 if sys.version_info >= (3,0):
 	import urllib.parse
@@ -129,23 +128,9 @@ class Stage:
 		# Returns the position of the stage in meters. E.g. "my_stage.position".
 		pos = self.get_position()
 		return steps2m(pos['Position'], pos['uPosition'])
-	
-# The following default ports I found in the computers at our lab, don't know if they default to that in any computer.
-if platform.system() == 'Windows':
-	X_STAGE_DEFAULT_PORT = 'COM3'
-	Y_STAGE_DEFAULT_PORT = 'COM4'
-	Z_STAGE_DEFAULT_PORT = 'COM5'
-elif platform.system() == 'Linux':
-	X_STAGE_DEFAULT_PORT = '/dev/ttyACM1'
-	Y_STAGE_DEFAULT_PORT = '/dev/ttyACM2'
-	Z_STAGE_DEFAULT_PORT = '/dev/ttyACM0'
-else:
-	X_STAGE_DEFAULT_PORT = None
-	Y_STAGE_DEFAULT_PORT = None
-	Z_STAGE_DEFAULT_PORT = None
 
 class TCTStages:
-	def __init__(self, x_stage_port=X_STAGE_DEFAULT_PORT, y_stage_port=Y_STAGE_DEFAULT_PORT, z_stage_port=Z_STAGE_DEFAULT_PORT, x_limits=[-50e-3, 50e-3], y_limits=[-50e-3, 50e-3], z_limits=[0,90e-3]):
+	def __init__(self, x_stage_port, y_stage_port, z_stage_port, x_limits=[-50e-3, 50e-3], y_limits=[-50e-3, 50e-3], z_limits=[0,90e-3]):
 		# The default values for the limits were found after using the "Stage.reset_position" method. With these numbers there should be no problems.
 		self.x_stage = Stage(port=x_stage_port)
 		self.y_stage = Stage(port=y_stage_port)
@@ -158,6 +143,7 @@ class TCTStages:
 		}
 	
 	def move_to(self, x=None, y=None, z=None):
+		"""Move the mechanical stages to an absolute position, values go in meters."""
 		for stage, pos, coord in zip(self._stages, [x,y,z], ['x','y','z']):
 			if pos == None:
 				continue
@@ -166,6 +152,7 @@ class TCTStages:
 			stage.move_to(pos,blocking=True)
 	
 	def move_rel(self, x=None, y=None, z=None):
+		"""Move the mechanical stages relative to the current position, values in meters."""
 		movement_vector = [None]*3
 		for i, xyz in enumerate([x,y,z]):
 			movement_vector[i] = 0 if xyz is None else xyz
@@ -173,6 +160,7 @@ class TCTStages:
 	
 	@property
 	def position(self):
+		"""Return the current position of the stages in meters as a tuple of the form (x,y,z)."""
 		return tuple([stage.position for stage in self._stages])
 
 if __name__ == '__main__':
