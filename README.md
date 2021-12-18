@@ -13,27 +13,25 @@ This package was developed and tested only in our setup at UZH.
 ## Usage
 
 Usage example:
-
-**`WARNING`** This example is outdated as I am going through a major update to make this cross platform.
-
 ```Python
 import PyticularsTCT
 import time
 import numpy as np
 
-tct = PyticularsTCT.ParticularsTCT() # Note: PYYYYYYticularsTCT.PAAAAAArticularsTCT()
+tct = PyticularsTCT.TCT()
 
 # Sweep laser intensity ---
 tct.laser.on()
-for DAC in np.linspace(0,1666,5):
+for DAC in np.linspace(0,1023,5):
 	tct.laser.DAC = int(DAC) # Change the intensity of the laser.
 	print(f'Laser DAC = {tct.laser.DAC}')
 	time.sleep(1)
 
-# Sweep position ---
+# Sweep position using the mechanical stages ---
 current_position = tct.stages.position # Store current position to go back in the end.
-for x in current_position[0] + np.linspace(-55e-6,55e-6,11):
-	tct.stages.move_to(x=x)
+tct.laser.DAC = 0 # This is the most intense setting.
+for z in current_position[2] + np.linspace(-555e-6,555e-6,11):
+	tct.stages.move_to(z=z) # Values here go in meters.
 	print(f'Current position is {tct.stages.position}')
 	time.sleep(1)
 tct.stages.move_to(*current_position) # Go back to original position.
