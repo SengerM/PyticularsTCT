@@ -60,7 +60,7 @@ tct.stages.move_to(*current_position) # Go back to original position.
 
 ### About the motorized stages
 
-The X,Y,Z stages in the setup are controlled by [8SMC5-USB - Stepper & DC Motor Controller](http://www.standa.lt/products/catalog/motorised_positioners?item=525) units. The programming interface is descripted [here](https://doc.xisupport.com/en/8smc5-usb/8SMCn-USB/Programming.html). *PyticularsTCT* is shipped with a hardcoded copy of the binaries for some operating systems together with a slightly modified version of the Python script that is provided by the original author of the *ximc library* (see [PyticularsTCT/ximc](ximc)) in such a way that the control of the motors becomes easier. More information in the [`README.md`](PyticularsTCT/ximc/README.md) file located in [`PyticularsTCT/ximc`](PyticularsTCT\ximc).
+The X,Y,Z stages in the setup are controlled by [8SMC5-USB - Stepper & DC Motor Controller](http://www.standa.lt/products/catalog/motorised_positioners?item=525) units. The programming interface is descripted [here](https://doc.xisupport.com/en/8smc5-usb/8SMCn-USB/Programming.html). *PyticularsTCT* is shipped with a hardcoded copy of the binaries for some operating systems together with a slightly modified version of the Python script that is provided by the original author of the *ximc library* (see [PyticularsTCT/ximc](ximc)) in such a way that the control of the motors becomes easier. More information in the [`README.md`](PyticularsTCT/ximc/README.md) file located in [`PyticularsTCT/ximc`](PyticularsTCT/ximc).
 
 If you want control only the motors as a standalone package here there is an example:
 ```Python
