@@ -2,6 +2,7 @@ from ctypes import *
 import platform
 from pathlib import Path
 import os
+import sys
 
 # ----------------------------------------------------------------------
 # This file was adapted from the original one shipped with the ximc 
@@ -20,6 +21,11 @@ def ximc_shared_lib():
 		raise NotImplementedError(f'Not implemented for your operating system ({platform.system()}). However it should be very easy, have a look at the file {this_file_path.parent/Path("README.md")}.')
 	elif platform.system() == "Windows":
 		path_to_ximc_binaries = this_file_path.parent/Path('win64')
+		print(path_to_ximc_binaries)
+		if sys.version_info >= (3,8):
+			os.add_dll_directory(str(path_to_ximc_binaries))
+		else:
+			os.environ["Path"] = str(path_to_ximc_binaries) + os.pathsep + os.environ["Path"] # add dll path into an environment variable
 		return WinDLL(str(path_to_ximc_binaries/Path('libximc.dll')))
 	else:
 		return None
