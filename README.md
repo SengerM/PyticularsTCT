@@ -4,9 +4,28 @@ Package to control [Particulars TCT](http://particulars.si/) easily from Python.
 
 ## Installation
 
+### Installation instructions for Linux
+
+The following line
 ```
 pip3 install git+https://github.com/SengerM/PyticularsTCT
 ```
+should be enough.
+
+### Installation instructions for Windows
+
+1. First clone (or download) this repo in your favourite directory.
+2. Run
+```
+pip3 install git+https://github.com/SengerM/PyticularsTCT -e C:\my\favourite\directory\TCTSetup
+```
+3. Install the file `vcredist_x64.exe` located in [`PyticularsTCT/PyticularsTCT/ximc/win64`](PyticularsTCT/ximc/win64).
+
+Now it should work.
+
+### Further installation instructions
+
+This package depends on others which you will have to install (you will discover when you first try to use this one). Most of them are easy but some, such as [PyUSB](https://github.com/pyusb/pyusb), may be more tricky. However you should be able to make it work with help from Google.
 
 This package was developed and tested only in our setup at UZH.
 
@@ -41,7 +60,7 @@ tct.stages.move_to(*current_position) # Go back to original position.
 
 ### About the motorized stages
 
-The X,Y,Z stages in the setup are controlled by [8SMC5-USB - Stepper & DC Motor Controller](http://www.standa.lt/products/catalog/motorised_positioners?item=525) units. The programming interface is descripted [here](https://doc.xisupport.com/en/8smc5-usb/8SMCn-USB/Programming.html). *PyticularsTCT* is shipped with a hardcoded copy of the binaries for some operating systems together with a slightly modified version of the Python script that is provided by the original author of the *ximc library* (see [PyticularsTCT/ximc](ximc)) in such a way that the control of the motors becomes trivial, i.e. just `pip install blablabla` and it is working.
+The X,Y,Z stages in the setup are controlled by [8SMC5-USB - Stepper & DC Motor Controller](http://www.standa.lt/products/catalog/motorised_positioners?item=525) units. The programming interface is descripted [here](https://doc.xisupport.com/en/8smc5-usb/8SMCn-USB/Programming.html). *PyticularsTCT* is shipped with a hardcoded copy of the binaries for some operating systems together with a slightly modified version of the Python script that is provided by the original author of the *ximc library* (see [PyticularsTCT/ximc](ximc)) in such a way that the control of the motors becomes easier. More information in the [`README.md`](PyticularsTCT/ximc/README.md) file located in [`PyticularsTCT/ximc`](PyticularsTCT\ximc).
 
 If you want control only the motors as a standalone package here there is an example:
 ```Python
