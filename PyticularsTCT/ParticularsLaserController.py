@@ -2,6 +2,7 @@ import usb.core
 import usb.util
 from time import sleep
 from warnings import warn
+import platform
 
 def int_to_char_cpp_style(i: int):
 	if not isinstance(i, int):
@@ -14,9 +15,10 @@ class ParticularsLaserController:
 		device = usb.core.find(idVendor=0xC251, idProduct=0x2201) # ID c251:2201 Keil Software, Inc. LASER Driver IJS
 		if device is None:
 			raise RuntimeError(f'Cannot find the laser controller within the USB devices. Be sure it is connected and that it is recognized by the computer.')
-		interface = device[0].interfaces()[0]
-		if device.is_kernel_driver_active(interface.bInterfaceNumber):
-			device.detach_kernel_driver(interface.bInterfaceNumber)
+		if platform.system() == 'Linux':
+			interface = device[0].interfaces()[0]
+			if device.is_kernel_driver_active(interface.bInterfaceNumber): # Not sure why this is needed, but fails without it.
+				device.detach_kernel_driver(interface.bInterfaceNumber)
 		
 		self.device = device
 		self.endpoint = device[0].interfaces()[0].endpoints()[0]
@@ -99,6 +101,8 @@ class ParticularsLaserController:
 		"""
 		if not hasattr(packet, '__iter__') or not all([isinstance(byte, int) for byte in packet]) or any([not 0<=byte<=2**8 for byte in packet]):
 			raise ValueError(f'`packet` must be an array of integers each between 0 and 255. Received {repr(packet)}.')
+		if platform.system() == 'Windows':
+			packet = packet + (64-len(packet))*[0]
 		number_of_bytes_sent = self.device.ctrl_transfer(
 			bmRequestType = 0x21, # I have no idea why this number...
 			bRequest = 9, # I have no idea why this number...
