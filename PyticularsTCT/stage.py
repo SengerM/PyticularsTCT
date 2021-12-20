@@ -32,9 +32,9 @@ def steps2m(steps, usteps):
 def default_stages_ports():
 	# The following default ports I found in the computers at our lab, don't know if they default to that in any computer.
 	if platform.system() == 'Windows':
-		X_STAGE_DEFAULT_PORT = 'COM3'
+		X_STAGE_DEFAULT_PORT = 'COM5'
 		Y_STAGE_DEFAULT_PORT = 'COM4'
-		Z_STAGE_DEFAULT_PORT = 'COM5'
+		Z_STAGE_DEFAULT_PORT = 'COM3'
 	elif platform.system() == 'Linux':
 		X_STAGE_DEFAULT_PORT = '/dev/ttyACM2'
 		Y_STAGE_DEFAULT_PORT = '/dev/ttyACM1'
