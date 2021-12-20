@@ -21,7 +21,6 @@ def ximc_shared_lib():
 		raise NotImplementedError(f'Not implemented for your operating system ({platform.system()}). However it should be very easy, have a look at the file {this_file_path.parent/Path("README.md")}.')
 	elif platform.system() == "Windows":
 		path_to_ximc_binaries = this_file_path.parent/Path('win64')
-		print(path_to_ximc_binaries)
 		if sys.version_info >= (3,8):
 			os.add_dll_directory(str(path_to_ximc_binaries))
 		else:
