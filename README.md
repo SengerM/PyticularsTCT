@@ -27,7 +27,7 @@ Now it should work.
 
 This package depends on others which you will have to install (you will discover when you first try to use this one). Most of them are easy but some, such as [PyUSB](https://github.com/pyusb/pyusb), may be more tricky. However you should be able to make it work with help from Google.
 
-This package was developed and tested only in our setup at UZH.
+This package was developed and tested only in our setup at UZH. It worked both on Linux (Ubuntu 20.04) and Windows (10).
 
 ## Usage
 
@@ -60,7 +60,7 @@ tct.stages.move_to(*current_position) # Go back to original position.
 
 ### About the motorized stages
 
-The X,Y,Z stages in the setup are controlled by [8SMC5-USB - Stepper & DC Motor Controller](http://www.standa.lt/products/catalog/motorised_positioners?item=525) units. The programming interface is descripted [here](https://doc.xisupport.com/en/8smc5-usb/8SMCn-USB/Programming.html). *PyticularsTCT* is shipped with a hardcoded copy of the binaries for some operating systems together with a slightly modified version of the Python script that is provided by the original author of the *ximc library* (see [PyticularsTCT/ximc](ximc)) in such a way that the control of the motors becomes easier. More information in the [`README.md`](PyticularsTCT/ximc/README.md) file located in [`PyticularsTCT/ximc`](PyticularsTCT/ximc).
+The X,Y,Z stages in the setup are controlled by [8SMC5-USB - Stepper & DC Motor Controller](http://www.standa.lt/products/catalog/motorised_positioners?item=525) units. The programming interface is descripted [here](https://doc.xisupport.com/en/8smc5-usb/8SMCn-USB/Programming.html). *PyticularsTCT* is shipped with a hardcoded copy of the binaries for some operating systems together with a slightly modified version of the Python script that is provided by the original author of the *ximc library* (see [`PyticularsTCT/ximc`](PyticularsTCT/ximc)) in such a way that the control of the motors becomes easier. More information in the [`README.md`](PyticularsTCT/ximc/README.md) file located in [`PyticularsTCT/ximc`](PyticularsTCT/ximc).
 
 If you want control only the motors as a standalone package here there is an example:
 ```Python
@@ -87,7 +87,7 @@ If, for some very weird reason, you want to control each of the motorized stages
 
 ### About the laser
 
-I was able to implement a pure-Python driver for the laser, you can find it [here](PyticularsTCT/ParticularsLaserController.py). Being pure-Python it should be cross platform (I have only tested it on Linux by now). If you want to use this module individually, here there is an example:
+The [PyticularsLaserController](PyticularsTCT/ParticularsLaserController.py) is a pure Python module. If you want to use this module individually, here there is an example:
 ```Python
 from PyticularsTCT.ParticularsLaserController import ParticularsLaserController
 from time import sleep
