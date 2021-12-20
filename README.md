@@ -55,6 +55,7 @@ for z in current_position[2] + np.linspace(-555e-6,555e-6,11):
 	time.sleep(1)
 tct.stages.move_to(*current_position) # Go back to original position.
 ```
+Ideally you should use the `TCT` class defined in the [`__init__.py`](PyticularsTCT/__init__.py) file that abstracts the whole setup. This is a very simple class which has a `stages` artribute containing an instance of `TCTStages` defined in [`stage.py`](PyticularsTCT/stage.py) and an instance of `ParticularsLaserController` defined in [`ParticularsLaserController.py`](PyticularsTCT/ParticularsLaserController.py). The documentation is in the docstrings.
 
 ## More info
 
