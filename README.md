@@ -12,7 +12,7 @@ pip3 install git+https://github.com/SengerM/PyticularsTCT
 ```
 should be enough.
 
-After installing [PyUSB](https://github.com/pyusb/pyusb) you may get `USBError: [Errno 13] Access denied (insufficient permissions)`, [this](https://stackoverflow.com/questions/50625363/usberror-errno-13-access-denied-insufficient-permissions/70436368#70436368) solved the problem for me.
+After installing [PyUSB](https://github.com/pyusb/pyusb) you may get the common permission error `USBError: [Errno 13] Access denied (insufficient permissions)`. [This](https://stackoverflow.com/questions/50625363/usberror-errno-13-access-denied-insufficient-permissions/70436368#70436368) solved the problem for me.
 
 ### Installation instructions for Windows
 
