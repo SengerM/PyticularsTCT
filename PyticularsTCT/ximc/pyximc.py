@@ -15,7 +15,13 @@ def ximc_shared_lib():
 	this_file_path = Path(__file__)
 	if platform.system() == "Linux":
 		path_to_ximc_binaries = this_file_path.parent/Path('debian-amd64')
-		os.environ['LD_LIBRARY_PATH'] = str(path_to_ximc_binaries)
+		ignoreme_file = this_file_path.parent/Path('path_added_to_bashrc.ignoreme')
+		if not ignoreme_file.is_file():
+			# The first time this is run, we add the 
+			with open(Path.home()/Path('.bashrc'), 'a') as bashrc:
+				print(f'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:{path_to_ximc_binaries}', file = bashrc)
+			ignoreme_file.touch() # Create this file as a flag for future executions.
+			raise RuntimeError(f'\n\n#########\nIMPORTANT\n#########\nPlease close this shell and open a new one, this is only required the first time you load `pyximc.py` module.')
 		return CDLL(str(path_to_ximc_binaries/Path("libximc.so")))
 	elif platform.system() == "Darwin":
 		raise NotImplementedError(f'Not implemented for your operating system ({platform.system()}). However it should be very easy, have a look at the file {this_file_path.parent/Path("README.md")}.')
