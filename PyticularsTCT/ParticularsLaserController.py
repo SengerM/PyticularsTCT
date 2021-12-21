@@ -25,6 +25,10 @@ class ParticularsLaserController:
 		
 		self._frequency = 1e3 # Initialize.
 		self._DAC = 0 # Initialize.
+		current_status = self.status
+		self._turn_on() # This updates the real frequency and DAC.
+		if current_status == 'off':
+			self._turn_off()
 	
 	@property
 	def frequency(self):
@@ -75,6 +79,7 @@ class ParticularsLaserController:
 			raise RuntimeError('Cannot understand response from laser controller, dont know if the laser is on or off.')
 	@status.setter
 	def status(self, status: str):
+		"""Set the laser 'on' or 'off'."""
 		if status not in {'on','off'}:
 			raise ValueError(f'`status` must be either "on" or "off", received {repr(status)}.')
 		if status == 'on':
@@ -112,7 +117,7 @@ class ParticularsLaserController:
 		)
 		if number_of_bytes_sent != len(packet):
 			warn(f'I tried to send {len(packet)} bytes but only {number_of_bytes_sent} were sent...')
-		sleep(.1)
+		sleep(.01) # A small sleep to avoid issues if many commands are sent one after the other.
 		return number_of_bytes_sent
 	
 	def _turn_on(self):
