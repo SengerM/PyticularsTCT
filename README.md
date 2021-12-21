@@ -50,6 +50,7 @@ for DAC in np.linspace(0,1023,5):
 
 # Sweep position using the mechanical stages ---
 current_position = tct.stages.position # Store current position to go back in the end.
+print(f'Start position: {current_position}')
 tct.laser.DAC = 0 # This is the most intense setting.
 for z in current_position[2] + np.linspace(-555e-6,555e-6,11):
 	tct.stages.move_to(z=z) # Values here go in meters.
