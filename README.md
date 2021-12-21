@@ -19,9 +19,9 @@ After installing [PyUSB](https://github.com/pyusb/pyusb) you may get the common 
 1. First clone (or download) this repo in your favourite directory.
 2. Run
 ```
-pip3 install git+https://github.com/SengerM/PyticularsTCT -e C:\my\favourite\directory\TCTSetup
+pip3 install -e C:\wherever\you\cloned\this\repo
 ```
-3. Install the file `vcredist_x64.exe` located in [`PyticularsTCT/PyticularsTCT/ximc/win64`](PyticularsTCT/ximc/win64).
+3. Install the file `vcredist_x64.exe` located in [`PyticularsTCT/PyticularsTCT/ximc/win64`](PyticularsTCT/ximc/win64). (You already downloaded it, just navigate within the repo to that file.)
 
 Now it should work.
 
