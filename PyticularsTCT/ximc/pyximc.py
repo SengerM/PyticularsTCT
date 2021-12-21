@@ -15,13 +15,23 @@ def ximc_shared_lib():
 	this_file_path = Path(__file__)
 	if platform.system() == "Linux":
 		path_to_ximc_binaries = this_file_path.parent/Path('debian-amd64')
+		# This will execute only the first time this script is run ---
 		ignoreme_file = this_file_path.parent/Path('path_added_to_bashrc.ignoreme')
 		if not ignoreme_file.is_file():
-			# The first time this is run, we add the 
 			with open(Path.home()/Path('.bashrc'), 'a') as bashrc:
 				print(f'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:{path_to_ximc_binaries}', file = bashrc)
 			ignoreme_file.touch() # Create this file as a flag for future executions.
-			raise RuntimeError(f'\n\n#########\nIMPORTANT\n#########\nPlease close this shell and open a new one, this is only required the first time you load `pyximc.py` module.')
+			print(f'''
+##########################################
+    IMPORTANT to complete installation
+##########################################
+Please do one of the following:
+	- Run `source ~/.bashrc` (without the `)
+	- or close this terminal and open a new one
+This is only required the first time you use this module to complete the installation, I could not find other way to automatize this, sorry.
+''')
+			exit()
+		# ------------------------------------------------------------
 		return CDLL(str(path_to_ximc_binaries/Path("libximc.so")))
 	elif platform.system() == "Darwin":
 		raise NotImplementedError(f'Not implemented for your operating system ({platform.system()}). However it should be very easy, have a look at the file {this_file_path.parent/Path("README.md")}.')
