@@ -43,6 +43,9 @@ tct = PyticularsTCT.TCT()
 
 # Sweep laser intensity ---
 tct.laser.on()
+print(f'Laser is {tct.laser.status} at a frequency of {tct.laser.frequency} Hz.') # Should print 'Laser is on at a frequency of 1000 Hz'.
+tct.laser.frequency = 2e3 # Change the frequency of the laser.
+print(f'The frequency has been changed to {tct.laser.frequency} Hz.')
 for DAC in np.linspace(0,1023,5):
 	tct.laser.DAC = int(DAC) # Change the intensity of the laser.
 	print(f'Laser DAC = {tct.laser.DAC}')
@@ -50,13 +53,20 @@ for DAC in np.linspace(0,1023,5):
 
 # Sweep position using the mechanical stages ---
 current_position = tct.stages.position # Store current position to go back in the end.
-print(f'Start position: {current_position}')
+print(f'Start position: {current_position}') # Should print something like 'Start position: (0.23912637, 0.07196379, 0.5165688)' where each value is x,y,z.
 tct.laser.DAC = 0 # This is the most intense setting.
-for z in current_position[2] + np.linspace(-555e-6,555e-6,11):
-	tct.stages.move_to(z=z) # Values here go in meters.
+tct.stages.move_rel(z=-555e-6) # Move 555 µm in the "-z" direction.
+for kz in range(11):
+	tct.stages.move_rel(z=1111e-6/11) # Move in the "+z" direction.
 	print(f'Current position is {tct.stages.position}')
 	time.sleep(1)
+print('Going back to start position...')
 tct.stages.move_to(*current_position) # Go back to original position.
+print(f'Current position is {tct.stages.position}')
+print('Will turn off the laser now...')
+tct.laser.off()
+print(f'Laser status is {tct.laser.status}.')
+print('Bye!')
 ```
 Ideally you should use the `TCT` class defined in the [`__init__.py`](PyticularsTCT/__init__.py) file that abstracts the whole setup. This is a very simple class which has a `stages` artribute containing an instance of `TCTStages` defined in [`stage.py`](PyticularsTCT/stage.py) and an instance of `ParticularsLaserController` defined in [`ParticularsLaserController.py`](PyticularsTCT/ParticularsLaserController.py). The documentation is in the docstrings.
 
