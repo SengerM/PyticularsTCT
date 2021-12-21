@@ -124,6 +124,7 @@ class ParticularsLaserController:
 	def _turn_off(self):
 		"""Turn the laser off."""
 		self._send_packet([90])
+		self._send_packet([4])
 	
 	def _set_frequency(self, Hz: float):
 		"""Set the frequency of the laser."""
