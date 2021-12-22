@@ -106,8 +106,7 @@ class ParticularsLaserController:
 		"""
 		if not hasattr(packet, '__iter__') or not all([isinstance(byte, int) for byte in packet]) or any([not 0<=byte<=2**8 for byte in packet]):
 			raise ValueError(f'`packet` must be an array of integers each between 0 and 255. Received {repr(packet)}.')
-		if platform.system() == 'Windows':
-			packet = packet + (64-len(packet))*[0]
+		packet = packet + (64-len(packet))*[0]
 		number_of_bytes_sent = self.device.ctrl_transfer(
 			bmRequestType = 0x21, # I have no idea why this number...
 			bRequest = 9, # I have no idea why this number...
