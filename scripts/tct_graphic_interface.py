@@ -27,6 +27,7 @@ stages_widget = StagesControlGraphicalInterface_main(
 stages_widget.grid(
 	row = 0,
 	column = 0,
+	sticky = 'n',
 )
 laser_controller_widget = LaserControllerGraphicalInterface_main(
 	widgets_frame, 
@@ -36,6 +37,7 @@ laser_controller_widget.grid(
 	row = 0,
 	column = 1,
 	padx = (99,0),
+	sticky = 'n',
 )
 
 def on_closing():
