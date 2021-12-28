@@ -124,6 +124,6 @@ print(f'Laser status is: {laser.status}')
 
 ## Graphical interface
 
-A simple graphical interface is provides by *PyticularsTCT* package to perform quick tests. See the [`tct_graphic_interface.py`](scripts/tct_graphic_interface.py) script.
+A simple graphical interface is provides by *PyticularsTCT* package to perform quick tests. See the [`tct_graphic_interface.py`](scripts/tct_graphic_interface.py) script. The graphical interface should be cross platform, though it has only been tested on Linux (Dec-2021).
 
 ![Grahpical interface screenshot](doc/Screenshot_2021-12-28_14-38-08.png)
