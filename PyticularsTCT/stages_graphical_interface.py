@@ -175,30 +175,46 @@ class StagesJoystick(tk.Frame):
 		print(f'Stages moved, new position is {new_pos}')
 		self.current_coordinates_display.set_coordinates(*new_pos)
 
+class StagesControlGraphicalInterface_main(tk.Frame):
+	def __init__(self, parent, stages, *args, **kwargs):
+		tk.Frame.__init__(self, parent, *args, **kwargs)
+		self.parent = parent
+		
+		main_frame = tk.Frame(self)
+		main_frame.grid()
+		current_position_frame = tk.Frame(main_frame)
+		controls_frame = tk.Frame(main_frame)
+		current_position_frame.grid()
+		controls_frame.grid()
+		
+		current_coordinates = CoordinatesControl(current_position_frame, stages=stages, coordinates_name='Current position')
+		current_coordinates.grid()
+		current_coordinates.coordinates.set_coordinates(*stages.position)
+		
+		joystick = StagesJoystick(parent=controls_frame, stages=stages, current_coordinates_display=current_coordinates)
+		joystick.grid(pady=20)
+		
+		for k in [1,2]:
+			memory = CoordinatesMemory(
+				parent = main_frame, 
+				stages = stages,
+				coordinates_name = f'Position memory #{k}',
+			)
+			memory.grid(pady=20)
+			memory.set_coordinates(*stages.position)
+
 if __name__ == '__main__':
+	import tkinter.font as tkFont
+	
 	stages = TCTStages(x_stage_port=default_stages_ports().get('x'), y_stage_port=default_stages_ports().get('y'), z_stage_port=default_stages_ports().get('z'))
 
 	root = tk.Tk()
+	default_font = tkFont.nametofont("TkDefaultFont")
 	root.title('Pyticulares stages control')
-	current_position_frame = tk.Frame(root)
-	controls_frame = tk.Frame(root)
-	current_position_frame.grid()
-	controls_frame.grid()
-
-	current_coordinates = CoordinatesControl(current_position_frame, stages=stages, coordinates_name='Current position')
-	current_coordinates.grid()
-	current_coordinates.coordinates.set_coordinates(*stages.position)
-
-	joystick = StagesJoystick(parent=controls_frame, stages=stages, current_coordinates_display=current_coordinates)
-	joystick.grid(pady=20)
-
-	for k in range(3):
-		memory = CoordinatesMemory(
-			parent = root, 
-			stages = stages,
-			coordinates_name = f'Position memory # {k+1}',
-		)
-		memory.grid(pady=20)
-		memory.set_coordinates(*stages.position)
-
+	main_frame = tk.Frame(root)
+	main_frame.grid(padx=20,pady=20)
+	main_frame.grid()
+	tk.Label(main_frame, text = 'Pyticulars stages control', font=("Georgia", 22, "bold")).grid(pady=22)
+	StagesControlGraphicalInterface_main(main_frame, stages).grid()
+	
 	root.mainloop()
