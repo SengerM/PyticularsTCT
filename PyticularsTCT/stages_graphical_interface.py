@@ -91,7 +91,7 @@ class CoordinatesMemory(tk.Frame):
 		self.store_position_btn.grid()
 	
 	def store_current_position_command(self):
-		current_pos = stages.position
+		current_pos = self.stages.position
 		self.coordinates_control.set_coordinates(*current_pos)
 		print(f'Stored current position...')
 	
