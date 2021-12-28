@@ -176,19 +176,19 @@ if __name__ == '__main__':
 			self._laser = laser
 			
 			frame = tk.Frame(self)
-			frame.grid(pady=10)
+			frame.grid(pady=5)
 			tk.Label(frame, text = 'Laser is').grid()
 			self.status_label = tk.Label(frame, text = '?')
 			self.status_label.grid()
 			
 			frame = tk.Frame(self)
-			frame.grid(pady=10)
+			frame.grid(pady=5)
 			tk.Label(frame, text = 'DAC').grid()
 			self.DAC_label = tk.Label(frame, text = '?')
 			self.DAC_label.grid()
 			
 			frame = tk.Frame(self)
-			frame.grid(pady=10)
+			frame.grid(pady=5)
 			tk.Label(frame, text = 'Frequency').grid()
 			self.frequency_label = tk.Label(frame, text = '?')
 			self.frequency_label.grid()
@@ -217,6 +217,9 @@ if __name__ == '__main__':
 			
 			self._automatic_display_update_thread = threading.Thread(target = thread_function)
 			self._automatic_display_update_thread.start()
+		
+		def terminate(self):
+			self.automatic_display_update('off')
 		
 	class graphical_ParticularsLaserControlInput(tk.Frame):
 		def __init__(self, parent, laser, *args, **kwargs):
@@ -297,21 +300,40 @@ if __name__ == '__main__':
 			except Exception as e:
 				tk.messagebox.showerror(message = f'Cannot update frequency. Reason: {repr(e)}.')
 	
+	class LaserControllerGraphicalInterface_main(tk.Frame):
+		def __init__(self, parent, laser, *args, **kwargs):
+			tk.Frame.__init__(self, parent, *args, **kwargs)
+			self.parent = parent
+			
+			if not isinstance(laser, ParticularsLaserController):
+				raise TypeError(f'`laser` must be an instance of {repr(ParticularsLaserController)}, received object of type {type(laser)}.')
+			self._laser = laser
+			
+			main_frame = tk.Frame(self)
+			main_frame.grid(padx=5,pady=5)
+			display = graphical_ParticularsLaserStatusDisplay(main_frame, laser)
+			display.grid(pady=5)
+			graphical_ParticularsLaserControlInput(main_frame, laser).grid(pady=0)
+			
+			self._display = display
+		
+		def terminate(self):
+			self._display.terminate()
+	
 	laser = ParticularsLaserController()
 	
 	root = tk.Tk()
-	root.title('Pyticulars laser control')
 	default_font = tkFont.nametofont("TkDefaultFont")
 	default_font.configure(size=16)
+	root.title('Pyticulars laser control')
 	main_frame = tk.Frame(root)
 	main_frame.grid(padx=20,pady=20)
 	tk.Label(main_frame, text = 'Pyticulars laser control', font=("Georgia", 22, "bold")).grid()
-	display = graphical_ParticularsLaserStatusDisplay(main_frame, laser)
-	display.grid(pady=20)
-	graphical_ParticularsLaserControlInput(main_frame, laser).grid(pady=20)
-	
+	main_frame.grid()
+	laser_controller = LaserControllerGraphicalInterface_main(main_frame, laser)
+	laser_controller.grid()
 	def on_closing():
-		display.automatic_display_update('off')
+		laser_controller.terminate()
 		root.destroy()
 	root.protocol("WM_DELETE_WINDOW", on_closing)
 	
