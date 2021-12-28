@@ -2,7 +2,7 @@ import tkinter as tk
 import tkinter.messagebox
 import numpy as np
 import numbers
-from stage import TCTStages, default_stages_ports
+from .stage import TCTStages, default_stages_ports
 
 class CoordinatesFrame(tk.Frame):
 	def __init__(self, parent, coordinates_name=None, *args, **kwargs):
@@ -204,13 +204,10 @@ class StagesControlGraphicalInterface_main(tk.Frame):
 			memory.set_coordinates(*stages.position)
 
 if __name__ == '__main__':
-	import tkinter.font as tkFont
-	
 	stages = TCTStages(x_stage_port=default_stages_ports().get('x'), y_stage_port=default_stages_ports().get('y'), z_stage_port=default_stages_ports().get('z'))
 
 	root = tk.Tk()
-	default_font = tkFont.nametofont("TkDefaultFont")
-	root.title('Pyticulares stages control')
+	root.title('Pyticulars stages control')
 	main_frame = tk.Frame(root)
 	main_frame.grid(padx=20,pady=20)
 	main_frame.grid()
