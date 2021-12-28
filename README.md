@@ -121,3 +121,9 @@ print('Will turn the laser off...')
 laser.off() # This is equivalent to `laser.status = 'off'`.
 print(f'Laser status is: {laser.status}')
 ```
+
+## Graphical interface
+
+A simple graphical interface is provides by *PyticularsTCT* package to perform quick tests. See the [`tct_graphic_interface.py`](scripts/tct_graphic_interface.py) script.
+
+![Grahpical interface screenshot](doc/Screenshot_2021-12-28_14-38-08.png)
