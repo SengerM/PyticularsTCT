@@ -23,7 +23,7 @@ class ParticularsLaserController:
 		self.device = device
 		self.endpoint = device[0].interfaces()[0].endpoints()[0]
 		
-		self._frequency = 1e3 # Initialize.
+		self._frequency = 50 # Initialize.
 		self._DAC = 0 # Initialize.
 		current_status = self.status
 		self._turn_on() # This updates the real frequency and DAC.
