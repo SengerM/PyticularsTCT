@@ -3,7 +3,7 @@ import tkinter.messagebox
 import tkinter.font as tkFont
 import threading
 import time
-from ParticularsLaserController import ParticularsLaserController
+from .ParticularsLaserController import ParticularsLaserController
 
 class graphical_ParticularsLaserStatusDisplay(tk.Frame):
 	def __init__(self, parent, laser: ParticularsLaserController, *args, **kwargs):
@@ -106,7 +106,7 @@ class graphical_ParticularsLaserControlInput(tk.Frame):
 		for key in {'<Return>','<KP_Enter>'}:
 			self.frequency_entry.bind(key, self.update_frequency)
 		
-		self.status_button = tk.Button(entries_frame, text='Turn on' if laser.status=='off' else 'Turn off', command=self._status_button_clicked)
+		self.status_button = tk.Button(entries_frame, text='Turn on' if self._laser.status=='off' else 'Turn off', command=self._status_button_clicked)
 		self.status_button.grid(
 			pady = 22,
 		)
@@ -116,7 +116,7 @@ class graphical_ParticularsLaserControlInput(tk.Frame):
 			self._laser.off()
 		elif self._laser.status == 'off':
 			self._laser.on()
-		self.status_button.config(text='Turn on' if laser.status=='off' else 'Turn off')
+		self.status_button.config(text='Turn on' if self._laser.status=='off' else 'Turn off')
 	
 	def update_DAC(self, event=None):
 		try:
