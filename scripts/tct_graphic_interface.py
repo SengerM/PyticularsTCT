@@ -1,4 +1,8 @@
-import threading
+# Usage: Just run this script and enjoy the grahpical interface:
+# ```
+# python3 tct_graphic_interface.py
+# ```
+
 from PyticularsTCT.laser_controller_graphical_interface import LaserControllerGraphicalInterface_main
 from PyticularsTCT.stages_graphical_interface import StagesControlGraphicalInterface_main
 import tkinter as tk
