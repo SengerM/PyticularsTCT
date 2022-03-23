@@ -3,7 +3,7 @@ import tkinter.messagebox
 import tkinter.font as tkFont
 import threading
 import time
-from .ParticularsLaserController import ParticularsLaserController
+from PyticularsTCT.ParticularsLaserController import ParticularsLaserController
 
 class graphical_ParticularsLaserStatusDisplay(tk.Frame):
 	def __init__(self, parent, laser: ParticularsLaserController, *args, **kwargs):

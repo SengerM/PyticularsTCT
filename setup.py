@@ -6,7 +6,7 @@ with open("README.md", "r") as f:
 
 setuptools.setup(
 	name = "PyticularsTCT",
-	version = "211218",
+	version = "220323",
 	author = "Matias Senger",
 	author_email = "m.senger@hotmail.com",
 	description = "Operate the Particulars TCT from Python",

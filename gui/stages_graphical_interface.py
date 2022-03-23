@@ -2,7 +2,7 @@ import tkinter as tk
 import tkinter.messagebox
 import numpy as np
 import numbers
-from .stage import TCTStages, default_stages_ports
+from PyticularsTCT.stage import TCTStages
 
 class CoordinatesFrame(tk.Frame):
 	def __init__(self, parent, coordinates_name=None, *args, **kwargs):
@@ -204,7 +204,16 @@ class StagesControlGraphicalInterface_main(tk.Frame):
 			memory.set_coordinates(*stages.position)
 
 if __name__ == '__main__':
-	stages = TCTStages(x_stage_port=default_stages_ports().get('x'), y_stage_port=default_stages_ports().get('y'), z_stage_port=default_stages_ports().get('z'))
+	from PyticularsTCT.find_ximc_stages import map_coordinates_to_serial_ports
+	
+	stages_coordinates = { # This is what I have in the lab, in your case it may be different. (Matias, 23.March.2022)
+		'XIMC_XIMC_Motor_Controller_00003A48': 'x',
+		'XIMC_XIMC_Motor_Controller_00003A57': 'y',
+		'XIMC_XIMC_Motor_Controller_000038CE': 'z',
+	}
+	ports_dict = map_coordinates_to_serial_ports(stages_coordinates)
+	
+	stages = TCTStages(x_stage_port=ports_dict['x'], y_stage_port=ports_dict['y'], z_stage_port=ports_dict['z'])
 
 	root = tk.Tk()
 	root.title('Pyticulars stages control')

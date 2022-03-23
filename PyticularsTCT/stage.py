@@ -29,22 +29,6 @@ def steps2m(steps, usteps):
 	# Converts "steps" to "meters".
 	return steps*2.5*1e-6 + usteps*2.5*1e-6/2**8
 
-def default_stages_ports():
-	# The following default ports I found in the computers at our lab, don't know if they default to that in any computer.
-	if platform.system() == 'Windows':
-		X_STAGE_DEFAULT_PORT = 'COM5'
-		Y_STAGE_DEFAULT_PORT = 'COM4'
-		Z_STAGE_DEFAULT_PORT = 'COM3'
-	elif platform.system() == 'Linux':
-		X_STAGE_DEFAULT_PORT = '/dev/ttyACM2'
-		Y_STAGE_DEFAULT_PORT = '/dev/ttyACM1'
-		Z_STAGE_DEFAULT_PORT = '/dev/ttyACM0'
-	else:
-		X_STAGE_DEFAULT_PORT = None
-		Y_STAGE_DEFAULT_PORT = None
-		Z_STAGE_DEFAULT_PORT = None
-	return {'x': X_STAGE_DEFAULT_PORT, 'y': Y_STAGE_DEFAULT_PORT, 'z': Z_STAGE_DEFAULT_PORT}
-
 class Stage:
 	"""
 	https://libximc.xisupport.com/doc-en/index.html
@@ -164,7 +148,7 @@ class TCTStages:
 		for stage, pos, coord in zip(self._stages, [x,y,z], ['x','y','z']):
 			if pos == None:
 				continue
-			if not self.coordinates_limits[coord][0] < pos < self.coordinates_limits[coord][1]:
+			if not self.coordinates_limits[coord][0] <= pos <= self.coordinates_limits[coord][1]:
 				raise ValueError(f'Coordinate {repr(coord)} must be inside the range {self.coordinates_limits[coord]}, received {pos}.')
 			stage.move_to(pos,blocking=True)
 	

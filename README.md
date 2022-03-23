@@ -79,23 +79,29 @@ The X,Y,Z stages in the setup are controlled by [8SMC5-USB - Stepper & DC Motor 
 If you want control only the motors as a standalone package here there is an example:
 ```Python
 from PyticularsTCT.stage import TCTStages
+from PyticularsTCT.find_ximc_stages import map_coordinates_to_serial_ports
 
-stages = TCTStages(
-	z_stage_port = '/dev/ttyACM0', # To know what to write here, if you are in Linux https://unix.stackexchange.com/a/144735/317682, in Windows it is 'COM1' and so.
-	x_stage_port = '/dev/ttyACM1', 
-	y_stage_port = '/dev/ttyACM2',
-)
+stages_coordinates = { # This is what I have in the lab, in your case it may be different.
+	'XIMC_XIMC_Motor_Controller_00003A48': 'x',
+	'XIMC_XIMC_Motor_Controller_00003A57': 'y',
+	'XIMC_XIMC_Motor_Controller_000038CE': 'z',
+}
+ports_dict = map_coordinates_to_serial_ports(stages_coordinates) # You are not obliged to do this, you can just hardcode the serial ports in the line below. The advantage of this is that you don't need to change this each time the computer is restarted or the USB ports are disconnected.
+stages = TCTStages(x_stage_port=ports_dict['x'], y_stage_port=ports_dict['y'], z_stage_port=ports_dict['z'])
 
-print(stages.position) # Print (x,y,z) position.
-stages.move_rel(z = 1e-2) # Move z in 1 centimiter.
-print(stages.position)
-stages.move_rel(z = -1e-2) # Move z in -1 centimiter.
-print(stages.position) # Position should be the initial position.
-stages.move_rel(x = 1e-6, y = 1e-6) # Move 1 µm both in x and y.
 current_position = stages.position
+print(f'Initial position: {current_position}') # Print (x,y,z) position.
 stages.move_to(0,0,0) # Move to x=y=z=0.
 print(stages.position)
+stages.move_rel(z = 1e-2) # Move z 1 centimeter.
+print(stages.position)
+stages.move_rel(z = -.5e-2) # Move z -0.5 centimeter.
+print(stages.position) # Position should be the initial position.
+stages.move_rel(x = 1e-6, y = 2e-6) # Move 1 µm in x and 2 µm in y.
+print(stages.position)
 stages.move_to(*current_position) # Go back to previous position.
+print(stages.position)
+
 ```
 If, for some very weird reason, you want to control each of the motorized stages individually it is also possible, have a look at [the source code of `stage.py`](PyticularsTCT/stage.py).
 
@@ -124,6 +130,6 @@ print(f'Laser status is: {laser.status}')
 
 ## Graphical interface
 
-A simple graphical interface is provides by *PyticularsTCT* package to perform quick tests. See the [`tct_graphic_interface.py`](scripts/tct_graphic_interface.py) script. The graphical interface should be cross platform, though it has only been tested on Linux (Dec-2021).
+A simple graphical interface is provided by *PyticularsTCT* to perform quick tests, laser alignment, etc. See the [`tct_graphic_interface.py`](gui/tct_graphic_interface.py) script. The graphical interface should be cross platform, though it has only been tested on Linux (Dec-2021).
 
 ![Grahpical interface screenshot](doc/Screenshot_2021-12-28_14-38-08.png)
