@@ -36,10 +36,18 @@ This package was developed and tested only in our setup at UZH. It worked both o
 Usage example:
 ```Python
 import PyticularsTCT
+from PyticularsTCT.find_ximc_stages import map_coordinates_to_serial_ports
 import time
 import numpy as np
 
-tct = PyticularsTCT.TCT()
+stages_coordinates = { # This is what I have in the lab, in your case it may be different.
+	'XIMC_XIMC_Motor_Controller_00003A48': 'x',
+	'XIMC_XIMC_Motor_Controller_00003A57': 'y',
+	'XIMC_XIMC_Motor_Controller_000038CE': 'z',
+}
+ports_dict = map_coordinates_to_serial_ports(stages_coordinates) # You are not obliged to do this, you can just hardcode the serial ports in the line below. The advantage of this is that you don't need to change this each time the computer is restarted or the USB ports are disconnected.
+
+tct = PyticularsTCT.TCT(x_stage_port=ports_dict['x'], y_stage_port=ports_dict['y'], z_stage_port=ports_dict['z'])
 
 # Sweep laser intensity ---
 tct.laser.on()
