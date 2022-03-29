@@ -10,7 +10,11 @@ def int_to_char_cpp_style(i: int):
 	return int(f'{i:b}'[-8:], 2)
 
 class ParticularsLaserController:
-	"""This class allows to control the laser from the Particulars TCT setup. It is based in the C++ source code `USBM3.cxx` that Particulars sent to me after request to use the laser from Linux. I did not implemented every feature, only what I need."""
+	"""This class allows to control the laser from the Particulars TCT 
+	setup. It is based in the C++ source code `USBM3.cxx` that Particulars 
+	sent to me after request. I did not 
+	implemented every feature, only what I need.
+	"""
 	def __init__(self):
 		device = usb.core.find(idVendor=0xC251, idProduct=0x2201) # ID c251:2201 Keil Software, Inc. LASER Driver IJS
 		if device is None:
@@ -55,7 +59,13 @@ class ParticularsLaserController:
 		return getattr(self, '_DAC', None)
 	@DAC.setter
 	def DAC(self, DAC: int):
-		"""Set the DAC value."""
+		"""Set the DAC value.
+		
+		Parameters
+		----------
+		DAC: int
+			Value for the DAC, from 0 (highest intensity) to 1023.
+		"""
 		if not isinstance(DAC, int):
 			raise TypeError(f'`DAC` must be an integer number.')
 		if not 0 <= DAC < 1024:
@@ -98,12 +108,21 @@ class ParticularsLaserController:
 			self._turn_off()
 	
 	def _send_packet(self, packet):
-		"""Send a packet of bytes from the computer to the laser controller. I converged into this function after spending a lot of time reading from here and from there. I left below some references that were useful to me:
-			- https://stackoverflow.com/questions/37943825/send-hid-report-with-pyusb/52368526#52368526
-			- https://stackoverflow.com/a/52368526/8849755
-			- https://github.com/pyusb/pyusb/blob/629943a1d73aeb912222c7dc6eaaea0d64a94a08/usb/core.py#L1043
-		`packet` is an array of bytes, i.e. an array of integer numbers each in 0, 1, ..., 255. Example `packet = [0,4,200]`.
-		"""
+		"""Send a packet of bytes from the computer to the laser controller.
+		
+		Parameters
+		----------
+		packet: array of int between 0 and 255
+			An array of bytes, i.e. an array of integer numbers each 
+			in 0, 1, ..., 255, to be sent to the laser controller.
+			Example `packet = [0,4,200]`.
+		""" 
+		# ~ I converged into this function after spending a lot of time reading 
+		# ~ from here and from there. I left below some references that were 
+		# ~ useful to me:
+		# ~ - https://stackoverflow.com/questions/37943825/send-hid-report-with-pyusb/52368526#52368526
+		# ~ - https://stackoverflow.com/a/52368526/8849755
+		# ~ - https://github.com/pyusb/pyusb/blob/629943a1d73aeb912222c7dc6eaaea0d64a94a08/usb/core.py#L1043
 		if not hasattr(packet, '__iter__') or not all([isinstance(byte, int) for byte in packet]) or any([not 0<=byte<=2**8 for byte in packet]):
 			raise ValueError(f'`packet` must be an array of integers each between 0 and 255. Received {repr(packet)}.')
 		packet = packet + (64-len(packet))*[0]
