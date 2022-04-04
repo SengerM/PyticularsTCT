@@ -15,7 +15,7 @@ setuptools.setup(
 	url = "https://github.com/SengerM/PyticularsTCT",
 	packages = setuptools.find_packages(),
 	package_data = {
-		'': [path_to_something for path_to_something in (Path(__file__).parent/Path('PyticularsTCT')).glob('**/*') if path_to_something.is_file()] # This is for including all the files in the installation
+		'': [str(path_to_something) for path_to_something in (Path(__file__).parent/Path('PyticularsTCT')).glob('**/*') if path_to_something.is_file()] # This is for including all the files in the installation
 	},
 	include_package_data = True,
 )
