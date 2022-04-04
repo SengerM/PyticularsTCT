@@ -1,5 +1,5 @@
-import os
 import setuptools
+from pathlib import Path
 
 with open("README.md", "r") as f:
 	long_description = f.read()
@@ -14,5 +14,8 @@ setuptools.setup(
 	long_description_content_type = "text/markdown",
 	url = "https://github.com/SengerM/PyticularsTCT",
 	packages = setuptools.find_packages(),
+	package_data = {
+		'': [path_to_something for path_to_something in (Path(__file__).parent/Path('PyticularsTCT')).glob('**/*') if path_to_something.is_file()] # This is for including all the files in the installation
+	},
 	include_package_data = True,
 )
