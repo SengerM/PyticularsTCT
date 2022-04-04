@@ -52,8 +52,10 @@ laser_controller_widget.grid(
 )
 
 def on_closing():
+	print(f'Exiting...')
 	laser_controller_widget.terminate()
 	root.destroy()
+	print(f'##############\nIf the program does not end, just kill it now (`ctrl`+`c` or `ctrl`+`z`). It is safe.\n##############\n')
 root.protocol("WM_DELETE_WINDOW", on_closing)
 
 root.mainloop()
