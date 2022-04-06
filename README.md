@@ -141,3 +141,9 @@ print(f'Laser status is: {laser.status}')
 A simple graphical interface is provided by *PyticularsTCT* to perform quick tests, laser alignment, etc. See the [`tct_graphic_interface.py`](gui/tct_graphic_interface.py) script. The graphical interface should be cross platform, though it has only been tested on Linux (Dec-2021).
 
 ![Grahpical interface screenshot](doc/Screenshot_2021-12-28_14-38-08.png)
+
+## Useful/related repositories
+
+- [tct_scripts](https://github.com/SengerM/tct_scripts). Collection of scripts to perform scans.
+- [signals](https://github.com/SengerM/signals). Package to process TCT signals.
+- [landaupy](https://github.com/SengerM/landaupy). Landau (and Langauss) distribution(s) for Python.
