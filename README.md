@@ -40,10 +40,10 @@ from PyticularsTCT.find_ximc_stages import map_coordinates_to_serial_ports
 import time
 import numpy as np
 
-stages_coordinates = { # This is what I have in the lab, in your case it may be different.
-	'XIMC_XIMC_Motor_Controller_00003A48': 'x',
-	'XIMC_XIMC_Motor_Controller_00003A57': 'y',
-	'XIMC_XIMC_Motor_Controller_000038CE': 'z',
+stages_coordinates = { # This dictionary maps the serial number of each stage to a coordinate. To know the serial numbers you can use the function find_ximc_serial_devices defined in the file find_ximc_stages.py.
+	'00003A48': 'x',
+	'00003A57': 'y',
+	'000038CE': 'z',
 }
 ports_dict = map_coordinates_to_serial_ports(stages_coordinates) # You are not obliged to do this, you can just hardcode the serial ports in the line below. The advantage of this is that you don't need to change this each time the computer is restarted or the USB ports are disconnected.
 
