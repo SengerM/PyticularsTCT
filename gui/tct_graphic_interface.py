@@ -11,7 +11,7 @@ import tkinter as tk
 from PyticularsTCT.ParticularsLaserController import ParticularsLaserController
 from PyticularsTCT.stage import TCTStages
 import tkinter.font as tkFont
-from PyticularsTCT.find_ximc_stages import map_coordinates_to_serial_ports
+from PyticularsTCT.find_ximc_stages import map_coordinates_to_serial_ports # https://github.com/SengerM/PyticularsTCT
 
 root = tk.Tk()
 default_font = tkFont.nametofont("TkDefaultFont")
@@ -25,9 +25,9 @@ widgets_frame = tk.Frame(main_frame)
 widgets_frame.grid()
 
 stages_coordinates = { # This is what I have in the lab, in your case it may be different. (Matias, 23.March.2022)
-	'XIMC_XIMC_Motor_Controller_00003A48': 'x',
-	'XIMC_XIMC_Motor_Controller_00003A57': 'y',
-	'XIMC_XIMC_Motor_Controller_000038CE': 'z',
+	'00003A48': 'x',
+	'00003A57': 'y',
+	'000038CE': 'z',
 }
 ports_dict = map_coordinates_to_serial_ports(stages_coordinates)
 
