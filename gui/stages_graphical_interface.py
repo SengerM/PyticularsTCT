@@ -44,7 +44,7 @@ class CoordinatesFrame(tk.Frame):
 			if not isinstance(xyz, numbers.Number):
 				raise TypeError(f'Coordinates must be numbers, received {xyz} of type {type(xyz)}')
 			self.entries_coordinates[coord].delete(0,'end')
-			self.entries_coordinates[coord].insert(0,xyz*1e6)
+			self.entries_coordinates[coord].insert(0,int(xyz*1e6))
 
 class CoordinatesControl(tk.Frame):
 	def __init__(self, parent, stages, coordinates_name=None, *args, **kwargs):
