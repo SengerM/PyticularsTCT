@@ -15,7 +15,7 @@ class CoordinatesFrame(tk.Frame):
 		entries_frame = tk.Frame(self)
 		entries_frame.grid()
 		for idx,coord in enumerate(['x', 'y', 'z']):
-			tk.Label(entries_frame, text = f'{coord} (mm) = ').grid(
+			tk.Label(entries_frame, text = f'{coord} (µm) = ').grid(
 				row = idx,
 				column = 0,
 				pady = 2,
@@ -32,7 +32,7 @@ class CoordinatesFrame(tk.Frame):
 		coords = []
 		for coord in ['x', 'y', 'z']: 
 			try:
-				coords.append(float(self.entries_coordinates[coord].get())*1e-3)
+				coords.append(float(self.entries_coordinates[coord].get())*1e-6)
 			except ValueError:
 				coords.append(self.entries_coordinates[coord].get())
 		return tuple(coords)
@@ -44,7 +44,7 @@ class CoordinatesFrame(tk.Frame):
 			if not isinstance(xyz, numbers.Number):
 				raise TypeError(f'Coordinates must be numbers, received {xyz} of type {type(xyz)}')
 			self.entries_coordinates[coord].delete(0,'end')
-			self.entries_coordinates[coord].insert(0,xyz*1e3)
+			self.entries_coordinates[coord].insert(0,xyz*1e6)
 
 class CoordinatesControl(tk.Frame):
 	def __init__(self, parent, stages, coordinates_name=None, *args, **kwargs):
